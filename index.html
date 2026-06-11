@@ -711,9 +711,56 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
+// ---- SAVE / LOAD ----
+const SAVE_KEY = 'kawaiiPortalQuest_v1';
+
+function saveGame() {
+  const data = {
+    currentMap,
+    keysCollected,
+    portalOpen,
+    gemFound,
+    selectedChar,
+    playerX: player.x,
+    playerY: player.y,
+    overworldItems: overworldItems.map(i => ({ collected: i.collected })),
+    underworldItems: underworldItems.map(i => ({ collected: i.collected })),
+  };
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    currentMap = data.currentMap || 'overworld';
+    keysCollected = data.keysCollected || 0;
+    portalOpen = data.portalOpen || false;
+    gemFound = data.gemFound || false;
+    selectedChar = data.selectedChar || 0;
+    player.x = data.playerX || 1.5 * TILE;
+    player.y = data.playerY || 1.5 * TILE;
+    player.emoji = CHARS[selectedChar];
+    document.querySelectorAll('.charBtn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.charBtn[data-char="${selectedChar}"]`).classList.add('active');
+    if (data.overworldItems) data.overworldItems.forEach((s, i) => { if (overworldItems[i]) overworldItems[i].collected = s.collected; });
+    if (data.underworldItems) data.underworldItems.forEach((s, i) => { if (underworldItems[i]) underworldItems[i].collected = s.collected; });
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+// Auto-save every 5 seconds
+setInterval(saveGame, 5000);
+
 // ---- RESTART ----
 document.getElementById('restartBtn').addEventListener('click', () => {
   document.getElementById('winScreen').classList.remove('show');
+  clearSave();
   currentMap = 'overworld';
   player.x = 1.5 * TILE;
   player.y = 1.5 * TILE;
@@ -731,8 +778,13 @@ document.getElementById('restartBtn').addEventListener('click', () => {
 });
 
 // ---- START ----
+const resumed = loadGame();
 updateUI();
-showMessage('🌸 Welcome to the Kawaii Portal Quest! Find the 3 keys! 🗝️');
+if (resumed && !gemFound) {
+  showMessage(`🌸 Welcome back! Keys: ${keysCollected}/3 ${portalOpen ? '— Portal is open! 🌀' : ''}`);
+} else {
+  showMessage('🌸 Welcome to the Kawaii Portal Quest! Find the 3 keys! 🗝️');
+}
 loop();
 </script>
 </body>

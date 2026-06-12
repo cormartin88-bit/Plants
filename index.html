@@ -3,753 +3,1195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kawaii Portal Quest ✨</title>
+<title>Kawaii World — Catch & Build</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #1a0a2e;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-  }
-  #gameContainer {
-    position: relative;
-  }
-  canvas {
-    display: block;
-    border: 3px solid #ff6eb4;
-    border-radius: 12px;
-    box-shadow: 0 0 40px #ff6eb4, 0 0 80px #9b59b6;
-  }
-  #ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: #fff;
-    font-size: 14px;
-    pointer-events: none;
-    text-shadow: 1px 1px 3px #000;
-  }
-  #message {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
-    color: #ffe;
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 15px;
-    pointer-events: none;
-    border: 1px solid #ff6eb4;
-    white-space: nowrap;
-    transition: opacity 0.4s;
-  }
-  #title {
-    color: #ff9de2;
-    font-size: 22px;
-    margin-bottom: 6px;
-    text-shadow: 0 0 10px #ff6eb4;
-    letter-spacing: 2px;
-  }
-  #controls {
-    color: #c9b8f5;
-    font-size: 12px;
-    margin-top: 6px;
-    text-align: center;
-  }
-  #charSelect {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 10px;
-  }
-  .charBtn {
-    background: rgba(255,110,180,0.2);
-    border: 2px solid #ff6eb4;
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 18px;
-    transition: all 0.2s;
-  }
-  .charBtn:hover, .charBtn.active {
-    background: rgba(255,110,180,0.6);
-    box-shadow: 0 0 12px #ff6eb4;
-    transform: scale(1.1);
-  }
-  #winScreen {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background: rgba(10,0,30,0.92);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 28px;
-    text-align: center;
-    gap: 16px;
-  }
-  #winScreen.show { display: flex; }
-  #winScreen .gem { font-size: 80px; animation: pulse 1s infinite alternate; }
-  @keyframes pulse { from { transform: scale(1); filter: brightness(1); } to { transform: scale(1.2); filter: brightness(1.6) drop-shadow(0 0 20px gold); } }
-  #restartBtn {
-    background: #ff6eb4;
-    border: none;
-    color: #fff;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-size: 18px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  #restartBtn:hover { background: #e055a0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+canvas { display: block; }
+
+#blocker {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100; color: #fff; text-align: center;
+}
+#blocker h1 { font-size: 3rem; color: #ffb6c1; text-shadow: 0 0 20px #ff69b4; margin-bottom: 1rem; }
+#blocker p { font-size: 1.1rem; color: #ffd6e8; margin: 0.4rem 0; max-width: 500px; }
+#startBtn {
+  margin-top: 2rem; padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #ff69b4, #da70d6);
+  border: none; border-radius: 50px; color: #fff;
+  font-size: 1.3rem; cursor: pointer;
+  box-shadow: 0 0 30px #ff69b4;
+  transition: transform 0.15s;
+}
+#startBtn:hover { transform: scale(1.05); }
+
+/* HUD */
+#hud {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10;
+}
+#crosshair {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 24px; height: 24px;
+}
+#crosshair::before, #crosshair::after {
+  content: ''; position: absolute; background: rgba(255,255,255,0.8);
+  border-radius: 2px;
+}
+#crosshair::before { width: 2px; height: 24px; left: 11px; top: 0; }
+#crosshair::after  { width: 24px; height: 2px; top: 11px; left: 0; }
+
+#compass-wrap {
+  position: absolute; bottom: 20px; right: 20px;
+  pointer-events: none;
+}
+#compass-bg {
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(20,0,40,0.85) 60%, rgba(255,105,180,0.3));
+  border: 3px solid #ff69b4;
+  box-shadow: 0 0 20px rgba(255,105,180,0.5);
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+#compass-ring {
+  width: 120px; height: 120px; border-radius: 50%;
+  position: absolute;
+  border: 2px dashed rgba(255,182,193,0.4);
+}
+#compass-needle {
+  position: absolute; width: 4px; height: 50px;
+  background: linear-gradient(to bottom, #ff1493 50%, rgba(255,182,193,0.3) 50%);
+  border-radius: 3px;
+  transform-origin: bottom center;
+  bottom: 50%; left: calc(50% - 2px);
+  transition: transform 0.1s;
+}
+#temp-bar {
+  margin-top: 8px; height: 14px; border-radius: 7px;
+  background: linear-gradient(to right, #4fc3f7, #fff, #ff5722);
+  border: 2px solid rgba(255,255,255,0.3);
+  position: relative; overflow: hidden;
+}
+#temp-indicator {
+  position: absolute; top: 0; width: 6px; height: 100%;
+  background: #fff; border-radius: 3px;
+  box-shadow: 0 0 8px #fff;
+  transition: left 0.2s;
+}
+#compass-label {
+  color: #ffb6c1; font-size: 0.7rem; text-align: center; margin-top: 4px;
+  text-shadow: 0 0 8px #ff69b4;
+}
+
+#collection-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: linear-gradient(135deg, #ff69b4, #da70d6);
+  border: none; border-radius: 50px; color: #fff;
+  padding: 0.5rem 1.2rem; font-size: 0.9rem;
+  cursor: pointer; pointer-events: all;
+  box-shadow: 0 0 15px rgba(255,105,180,0.5);
+}
+#collection-btn:hover { filter: brightness(1.1); }
+
+#caught-count {
+  position: absolute; top: 16px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,0,40,0.8); border: 2px solid #ff69b4;
+  border-radius: 20px; padding: 0.4rem 1rem;
+  color: #ffb6c1; font-size: 0.9rem;
+  text-shadow: 0 0 8px #ff69b4;
+}
+
+#interact-prompt {
+  position: absolute; bottom: 30%; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,0,40,0.9); border: 2px solid #ff69b4;
+  border-radius: 20px; padding: 0.6rem 1.5rem;
+  color: #fff; font-size: 1rem;
+  text-align: center; max-width: 320px;
+  display: none;
+}
+
+#build-indicator {
+  position: absolute; bottom: 20px; left: 20px;
+  background: rgba(20,0,40,0.8); border: 2px solid #b388ff;
+  border-radius: 12px; padding: 0.5rem 1rem;
+  color: #e1bee7; font-size: 0.8rem;
+}
+#build-indicator span { color: #ff69b4; font-weight: bold; }
+
+#mode-label {
+  position: absolute; top: 60px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,0,40,0.8); border: 2px solid #b388ff;
+  border-radius: 20px; padding: 0.3rem 1rem;
+  color: #ce93d8; font-size: 0.85rem; display: none;
+}
+
+/* Collection modal */
+#collection-modal {
+  display: none; position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+#collection-modal.open { display: flex; }
+#collection-inner {
+  background: linear-gradient(135deg, #1a0033, #0d001a);
+  border: 3px solid #ff69b4; border-radius: 24px;
+  width: 90vw; max-width: 900px; max-height: 85vh;
+  overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 0 60px rgba(255,105,180,0.4);
+}
+#collection-header {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #ff69b4, #da70d6);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#collection-header h2 { color: #fff; font-size: 1.4rem; }
+#close-modal {
+  background: rgba(255,255,255,0.2); border: none; border-radius: 50%;
+  width: 36px; height: 36px; color: #fff; font-size: 1.2rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+#collection-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px; padding: 1rem; overflow-y: auto; flex: 1;
+}
+.char-card {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,105,180,0.3);
+  border-radius: 16px; padding: 0.8rem 0.5rem;
+  text-align: center; cursor: default;
+  transition: border-color 0.2s;
+}
+.char-card.caught { border-color: #ff69b4; background: rgba(255,105,180,0.1); }
+.char-card.caught:hover { border-color: #ff1493; }
+.char-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  margin: 0 auto 0.5rem; display: flex; align-items: center;
+  justify-content: center; font-size: 1.8rem;
+  filter: grayscale(1) brightness(0.5);
+}
+.caught .char-icon { filter: none; }
+.char-name { color: #ffd6e8; font-size: 0.75rem; font-weight: bold; }
+.char-rarity { font-size: 0.65rem; margin-top: 2px; }
+.rarity-common    { color: #aaa; }
+.rarity-uncommon  { color: #69f0ae; }
+.rarity-rare      { color: #64b5f6; }
+.rarity-legendary { color: #ffd54f; }
+.char-card:not(.caught) .char-name { color: #555; }
+
+/* Dialogue modal */
+#dialogue-modal {
+  display: none; position: fixed; inset: 0; z-index: 60;
+  align-items: flex-end; justify-content: center;
+  padding-bottom: 80px;
+}
+#dialogue-modal.open { display: flex; }
+#dialogue-box {
+  background: linear-gradient(135deg, #1a0033, #0d001a);
+  border: 3px solid #ff69b4; border-radius: 20px;
+  width: 90vw; max-width: 600px; padding: 1.5rem;
+  box-shadow: 0 0 40px rgba(255,105,180,0.5);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+#dialogue-char-name {
+  color: #ff69b4; font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;
+}
+#dialogue-text { color: #ffd6e8; font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
+#dialogue-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+.dlg-btn {
+  padding: 0.5rem 1.2rem; border-radius: 50px; border: none;
+  font-size: 0.9rem; cursor: pointer; transition: transform 0.1s;
+}
+.dlg-btn:hover { transform: scale(1.05); }
+#dlg-catch { background: linear-gradient(135deg, #ff69b4, #da70d6); color: #fff; }
+#dlg-clue  { background: linear-gradient(135deg, #64b5f6, #7c4dff); color: #fff; }
+#dlg-close { background: rgba(255,255,255,0.1); color: #aaa; }
+#catch-flash {
+  position: fixed; inset: 0; background: rgba(255,182,193,0.6);
+  pointer-events: none; z-index: 70; display: none;
+  align-items: center; justify-content: center;
+}
+#catch-flash.show { display: flex; animation: flashIn 0.6s ease forwards; }
+@keyframes flashIn {
+  0%   { opacity: 0; }
+  30%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+#catch-flash-text { font-size: 3rem; color: #fff; text-shadow: 0 0 30px #ff69b4; text-align: center; }
+
+#block-palette {
+  position: absolute; bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: none; gap: 8px;
+  background: rgba(20,0,40,0.9); border: 2px solid #b388ff;
+  border-radius: 16px; padding: 8px 12px;
+}
+#block-palette.visible { display: flex; }
+.palette-block {
+  width: 36px; height: 36px; border-radius: 8px;
+  cursor: pointer; border: 3px solid transparent;
+  transition: border-color 0.15s;
+}
+.palette-block.selected { border-color: #fff; }
 </style>
 </head>
 <body>
-<div id="title">✨ Kawaii Portal Quest ✨</div>
-<div id="charSelect">
-  <button class="charBtn active" data-char="0" title="Bunny">🐰</button>
-  <button class="charBtn" data-char="1" title="Cat">🐱</button>
-  <button class="charBtn" data-char="2" title="Bear">🐻</button>
-  <button class="charBtn" data-char="3" title="Fox">🦊</button>
-</div>
-<div id="gameContainer">
-  <canvas id="canvas" width="640" height="480"></canvas>
-  <div id="ui">
-    <div id="keyCount">🗝️ Keys: 0 / 3</div>
-    <div id="zone">📍 Overworld</div>
-  </div>
-  <div id="message"></div>
-  <div id="winScreen">
-    <div class="gem">💎</div>
-    <div style="color:#ffe066;font-size:32px;text-shadow:0 0 20px gold">The Gem of Eternity!</div>
-    <div style="font-size:16px;color:#c9b8f5;max-width:320px">You have claimed the most powerful gem in existence from the depths of the Underworld. The universe trembles before you! ✨</div>
-    <button id="restartBtn">Play Again 🌸</button>
-  </div>
-</div>
-<div id="controls">Arrow Keys / WASD to move &nbsp;|&nbsp; E to interact</div>
 
+<!-- Start screen -->
+<div id="blocker">
+  <h1>🌸 Kawaii World 🌸</h1>
+  <p>Explore a beautiful 3D world, catch 100 Kawaii characters, and build your dream home!</p>
+  <p style="margin-top:1rem;color:#ce93d8;font-size:0.95rem;">
+    <b>WASD</b> move &nbsp;|&nbsp; <b>Mouse</b> look &nbsp;|&nbsp; <b>E</b> interact &nbsp;|&nbsp;
+    <b>B</b> build mode &nbsp;|&nbsp; <b>Click</b> place/remove block
+  </p>
+  <button id="startBtn">Enter the World ✨</button>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="crosshair"></div>
+
+  <div id="caught-count">🌸 <span id="caught-num">0</span> / 100 Caught</div>
+  <button id="collection-btn" onclick="toggleCollection()">📖 Collection</button>
+
+  <div id="compass-wrap">
+    <div id="compass-bg">
+      <div id="compass-ring"></div>
+      <div id="compass-needle"></div>
+      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;top:8px;">N</div>
+      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;bottom:8px;">S</div>
+      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;left:8px;">W</div>
+      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;right:8px;">E</div>
+    </div>
+    <div id="temp-bar"><div id="temp-indicator"></div></div>
+    <div id="compass-label">⬆ Nearest Kawaii</div>
+  </div>
+
+  <div id="interact-prompt"></div>
+  <div id="build-indicator"><span id="mode-text">Explore</span> mode — B to toggle build</div>
+  <div id="mode-label">🏗 Build Mode — Click to place | Right-click to remove</div>
+
+  <div id="block-palette">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<!-- Collection modal -->
+<div id="collection-modal">
+  <div id="collection-inner">
+    <div id="collection-header">
+      <h2>🌸 Kawaii Collection</h2>
+      <button id="close-modal" onclick="toggleCollection()">✕</button>
+    </div>
+    <div id="collection-grid"></div>
+  </div>
+</div>
+
+<!-- Dialogue modal -->
+<div id="dialogue-modal">
+  <div id="dialogue-box">
+    <div id="dialogue-char-name"></div>
+    <div id="dialogue-text"></div>
+    <div id="dialogue-actions">
+      <button class="dlg-btn" id="dlg-catch" onclick="catchCharacter()">Catch! 🌸</button>
+      <button class="dlg-btn" id="dlg-clue"  onclick="askClue()">Give me a clue 🔍</button>
+      <button class="dlg-btn" id="dlg-close" onclick="closeDialogue()">Bye~ 👋</button>
+    </div>
+  </div>
+</div>
+
+<!-- Catch flash -->
+<div id="catch-flash"><div id="catch-flash-text"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+// ========================================================
+// KAWAII CHARACTERS (100)
+// ========================================================
+const KAWAII_CHARS = [
+  // Common (40)
+  { id:0,  name:'Mochi',    emoji:'🍡', color:'#ffb6c1', rarity:'common',    intro:'Kyaa~ you found me!',           clue:'Look near the big oak tree to the north~' },
+  { id:1,  name:'Pudding',  emoji:'🍮', color:'#ffd59e', rarity:'common',    intro:'Pudding-chan is here!',         clue:'My friend Dango loves water~ try the river!' },
+  { id:2,  name:'Sakura',   emoji:'🌸', color:'#ffb7d5', rarity:'common',    intro:'The petals led you to me~',     clue:'Hoshi hides where stars seem to fall at dusk.' },
+  { id:3,  name:'Hoshi',    emoji:'⭐', color:'#fff9c4', rarity:'common',    intro:'A star has landed! That\'s me~',clue:'Niko is always smiling near flowers.' },
+  { id:4,  name:'Niko',     emoji:'😊', color:'#c8e6c9', rarity:'common',    intro:'Niko niko~! Hello friend!',    clue:'Pipi likes to bounce around on hills.' },
+  { id:5,  name:'Pipi',     emoji:'🐣', color:'#fff9c4', rarity:'common',    intro:'Pipi! Pipi! Found me!',        clue:'Mimi is very shy — check behind tall rocks.' },
+  { id:6,  name:'Mimi',     emoji:'🐭', color:'#f8bbd0', rarity:'common',    intro:'Eek! You saw me?',             clue:'Koko dances on flat open plains!' },
+  { id:7,  name:'Koko',     emoji:'🥥', color:'#d7ccc8', rarity:'common',    intro:'Koko koko~!',                  clue:'Lulu likes to sit on top of little hills.' },
+  { id:8,  name:'Lulu',     emoji:'🌼', color:'#fff176', rarity:'common',    intro:'Lulu was waiting for you~',    clue:'Boba can be found near clusters of flowers.' },
+  { id:9,  name:'Boba',     emoji:'🧋', color:'#a1887f', rarity:'common',    intro:'I taste like adventure~',      clue:'Dango sticks close to water.' },
+  { id:10, name:'Dango',    emoji:'🍡', color:'#f48fb1', rarity:'common',    intro:'Three Dangos, one heart~',     clue:'Taiyaki loves sunny open spots.' },
+  { id:11, name:'Taiyaki',  emoji:'🐟', color:'#ffcc80', rarity:'common',    intro:'I\'m a fish… but sweet!',      clue:'Pocky stands tall near straight paths.' },
+  { id:12, name:'Pocky',    emoji:'🍫', color:'#6d4c41', rarity:'common',    intro:'Chocolate or strawberry?',     clue:'Ramune bubbles near cold streams.' },
+  { id:13, name:'Ramune',   emoji:'🔵', color:'#81d4fa', rarity:'common',    intro:'Fizzy and fun~!',              clue:'Matcha is green like the trees in the grove.' },
+  { id:14, name:'Matcha',   emoji:'🍵', color:'#a5d6a7', rarity:'common',    intro:'Bitter-sweet, just like me.',  clue:'Ichigo loves strawberry-colored sunsets.' },
+  { id:15, name:'Ichigo',   emoji:'🍓', color:'#ef9a9a', rarity:'common',    intro:'Ichigo means strawberry~!',    clue:'Yuzu is bright yellow — look in sunny meadows.' },
+  { id:16, name:'Yuzu',     emoji:'🍋', color:'#fff176', rarity:'common',    intro:'Zesty and warm!',              clue:'Mikan likes to roll down gentle slopes.' },
+  { id:17, name:'Mikan',    emoji:'🍊', color:'#ffb74d', rarity:'common',    intro:'Mikan-chan at your service!',  clue:'Ume prefers shaded places under trees.' },
+  { id:18, name:'Ume',      emoji:'🌺', color:'#f06292', rarity:'common',    intro:'Plum blossoms in spring~',     clue:'Fuji is tall and proud — look uphill.' },
+  { id:19, name:'Fuji',     emoji:'🗻', color:'#b0bec5', rarity:'common',    intro:'The summit welcomes you!',     clue:'Panda likes bamboo-green areas.' },
+  { id:20, name:'Panda',    emoji:'🐼', color:'#eceff1', rarity:'common',    intro:'Panda panda~!',                clue:'Usagi hops! Look in open grassy areas.' },
+  { id:21, name:'Usagi',    emoji:'🐰', color:'#f8bbd0', rarity:'common',    intro:'Hop hop hop~!',                clue:'Neko stretches out on warm flat stones.' },
+  { id:22, name:'Neko',     emoji:'🐱', color:'#ffecb3', rarity:'common',    intro:'Nyan~! Pet me, please!',       clue:'Kuma snoozes near dense tree groups.' },
+  { id:23, name:'Kuma',     emoji:'🐻', color:'#795548', rarity:'common',    intro:'Kuma bear says hello~',        clue:'Tori flies — watch the highest points.' },
+  { id:24, name:'Tori',     emoji:'🐦', color:'#81d4fa', rarity:'common',    intro:'Tweet tweet!',                 clue:'Hana blooms wherever flowers gather.' },
+  { id:25, name:'Hana',     emoji:'💐', color:'#f48fb1', rarity:'common',    intro:'Fresh and fragrant~',          clue:'Tsuki comes out when the sky looks dark.' },
+  { id:26, name:'Tsuki',    emoji:'🌙', color:'#e1f5fe', rarity:'common',    intro:'The moon guided you here!',    clue:'Hime likes the center of things — try the middle.' },
+  { id:27, name:'Hime',     emoji:'👑', color:'#ffe082', rarity:'common',    intro:'A princess never hides!',      clue:'Yuki loves cold, high-elevation spots.' },
+  { id:28, name:'Yuki',     emoji:'❄️', color:'#e3f2fd', rarity:'common',    intro:'Cold as a snowflake!',         clue:'Sora drifts wherever the view is widest.' },
+  { id:29, name:'Sora',     emoji:'☁️', color:'#bbdefb', rarity:'common',    intro:'Sky and clouds, that\'s me~',  clue:'Aki turns golden — look in golden-lit fields.' },
+  { id:30, name:'Aki',      emoji:'🍂', color:'#ffb74d', rarity:'common',    intro:'Autumn breeze, autumn leaves!', clue:'Natsu blazes in the brightest open areas.' },
+  { id:31, name:'Natsu',    emoji:'☀️', color:'#ffee58', rarity:'common',    intro:'Hot hot summer~!',             clue:'Fuku hides in lucky corners.' },
+  { id:32, name:'Fuku',     emoji:'🍀', color:'#66bb6a', rarity:'common',    intro:'Good luck finding me!',        clue:'Ai hides where things feel the most romantic.' },
+  { id:33, name:'Ai',       emoji:'💖', color:'#f48fb1', rarity:'common',    intro:'Love found you~!',             clue:'Koi swims — check near any water body.' },
+  { id:34, name:'Koi',      emoji:'🐠', color:'#ef5350', rarity:'common',    intro:'Colorful like my scales~',     clue:'Kiri hides in the mist — look through fog.' },
+  { id:35, name:'Kiri',     emoji:'🌫️', color:'#eceff1', rarity:'common',    intro:'Misty and mysterious~',        clue:'Shiro prefers pure white open spaces.' },
+  { id:36, name:'Shiro',    emoji:'⬜', color:'#fafafa', rarity:'common',    intro:'As white as clouds~',          clue:'Kuro lurks in shadowy corners.' },
+  { id:37, name:'Kuro',     emoji:'⬛', color:'#424242', rarity:'common',    intro:'Dark but cute~',               clue:'Aka is bright red — find it in warm zones.' },
+  { id:38, name:'Aka',      emoji:'🔴', color:'#ef5350', rarity:'common',    intro:'Bold and bright!',             clue:'Ao flows blue near water streams.' },
+  { id:39, name:'Ao',       emoji:'🔵', color:'#42a5f5', rarity:'common',    intro:'Blue like the deep sky~',      clue:'Tanuki has a big belly — look near round hills.' },
+  // Uncommon (30)
+  { id:40, name:'Tanuki',   emoji:'🦝', color:'#8d6e63', rarity:'uncommon',  intro:'Pom poko! Found me!',          clue:'Kitsune runs fast — look far north.' },
+  { id:41, name:'Kitsune',  emoji:'🦊', color:'#ff7043', rarity:'uncommon',  intro:'Nine tails, all cute~!',       clue:'Tengu is proud — stands on the highest terrain.' },
+  { id:42, name:'Tengu',    emoji:'👺', color:'#ef5350', rarity:'uncommon',  intro:'My nose is just big-boned.',   clue:'Oni is loud and lives in rocky areas.' },
+  { id:43, name:'Oni',      emoji:'👹', color:'#7b1fa2', rarity:'uncommon',  intro:'RAAAWR... just kidding, kawaii!',clue:'Mermaid stays close to any water body.' },
+  { id:44, name:'Mermaid',  emoji:'🧜', color:'#26c6da', rarity:'uncommon',  intro:'Splash splash~!',              clue:'Fairy dances near sparkly flowers.' },
+  { id:45, name:'Fairy',    emoji:'🧚', color:'#ce93d8', rarity:'uncommon',  intro:'Fairy dust for everyone!',     clue:'Sprite appears at the edge of forests.' },
+  { id:46, name:'Sprite',   emoji:'✨', color:'#fff176', rarity:'uncommon',  intro:'Blink and you\'ll miss me~',   clue:'Pixie hides in very small spaces — tight corners.' },
+  { id:47, name:'Pixie',    emoji:'🌟', color:'#ffee58', rarity:'uncommon',  intro:'Tiny but mighty!',             clue:'Wisp floats at dusk time areas.' },
+  { id:48, name:'Wisp',     emoji:'💙', color:'#81d4fa', rarity:'uncommon',  intro:'Follow the light~',            clue:'Glow brightens the darkest spots.' },
+  { id:49, name:'Glow',     emoji:'🌟', color:'#fff9c4', rarity:'uncommon',  intro:'I light the way~',             clue:'Bloom loves flower patches.' },
+  { id:50, name:'Bloom',    emoji:'🌻', color:'#ffee58', rarity:'uncommon',  intro:'Blossoming with joy~!',        clue:'Petal drifts on the breeze — open areas.' },
+  { id:51, name:'Petal',    emoji:'🌹', color:'#ef9a9a', rarity:'uncommon',  intro:'Delicate like a rose petal.',  clue:'Dewdrop hides near plants in the morning.' },
+  { id:52, name:'Dewdrop',  emoji:'💧', color:'#b3e5fc', rarity:'uncommon',  intro:'Crystal clear and fresh!',     clue:'Rainbow appears where water meets light.' },
+  { id:53, name:'Rainbow',  emoji:'🌈', color:'#ff6b6b', rarity:'uncommon',  intro:'Seven colors, one friend!',    clue:'Starfall drifts where the sky is open.' },
+  { id:54, name:'Starfall', emoji:'🌠', color:'#e1bee7', rarity:'uncommon',  intro:'Catch me before I disappear!', clue:'Moonbeam glows in open moonlit areas.' },
+  { id:55, name:'Moonbeam', emoji:'🌙', color:'#e8eaf6', rarity:'uncommon',  intro:'Silver thread of moonlight~',  clue:'Sunray blazes in the brightest spot you can see.' },
+  { id:56, name:'Sunray',   emoji:'🌞', color:'#ffd54f', rarity:'uncommon',  intro:'Warm and golden~!',            clue:'Cloudpuff floats on the highest ground.' },
+  { id:57, name:'Cloudpuff',emoji:'☁️', color:'#eceff1', rarity:'uncommon',  intro:'Soft as a cloud!',             clue:'Misty hides in low-lying foggy patches.' },
+  { id:58, name:'Misty',    emoji:'🌫️', color:'#cfd8dc', rarity:'uncommon',  intro:'Can you find me in the mist?', clue:'Frosty loves the coldest hillsides.' },
+  { id:59, name:'Frosty',   emoji:'🌨️', color:'#e3f2fd', rarity:'uncommon',  intro:'Cold hands, warm heart~!',     clue:'Coral prefers colors — look for colorful areas.' },
+  { id:60, name:'Coral',    emoji:'🪸', color:'#ff8a65', rarity:'uncommon',  intro:'Pretty as a reef!',            clue:'Pearl is perfect and round — look near spherical rocks.' },
+  { id:61, name:'Pearl',    emoji:'🔮', color:'#f3e5f5', rarity:'uncommon',  intro:'Precious and rare~!',          clue:'Crystal shines where light reflects.' },
+  { id:62, name:'Crystal',  emoji:'💎', color:'#b2ebf2', rarity:'uncommon',  intro:'Clear as glass, cute as pie!', clue:'Jade is green — look in the greenest areas.' },
+  { id:63, name:'Jade',     emoji:'💚', color:'#66bb6a', rarity:'uncommon',  intro:'Ancient and adorable~!',       clue:'Ruby burns bright in red-toned areas.' },
+  { id:64, name:'Ruby',     emoji:'❤️', color:'#ef5350', rarity:'uncommon',  intro:'Ruby-red and rare!',           clue:'Sapphire sparkles in blue-tinged zones.' },
+  { id:65, name:'Sapphire', emoji:'💙', color:'#42a5f5', rarity:'uncommon',  intro:'Deep blue and dreamy~!',       clue:'Topaz glows golden — sunny clearing ahead.' },
+  { id:66, name:'Topaz',    emoji:'💛', color:'#ffd54f', rarity:'uncommon',  intro:'Golden and warm~!',            clue:'Amber is frozen in time — look near still areas.' },
+  { id:67, name:'Amber',    emoji:'🟠', color:'#ffa726', rarity:'uncommon',  intro:'Ancient resin beauty~!',       clue:'Opal changes colors — look in the most colorful spot.' },
+  { id:68, name:'Opal',     emoji:'🌈', color:'#e040fb', rarity:'uncommon',  intro:'Every angle, a new color~!',   clue:'Ivory is elegant — look near tall structures.' },
+  { id:69, name:'Ivory',    emoji:'🤍', color:'#fafafa', rarity:'uncommon',  intro:'Pure and graceful~!',          clue:'Dreamer likes to wander far from home.' },
+  // Rare (20)
+  { id:70, name:'Dreamer',  emoji:'💭', color:'#ce93d8', rarity:'rare',      intro:'Dreams become reality here~',  clue:'Wisher only appears near the tallest point you can find.' },
+  { id:71, name:'Wisher',   emoji:'🌠', color:'#e1bee7', rarity:'rare',      intro:'Make a wish, I\'m here~!',     clue:'Shimmer dances in reflective light.' },
+  { id:72, name:'Shimmer',  emoji:'✨', color:'#fff9c4', rarity:'rare',      intro:'I shimmer, therefore I am~',   clue:'Sparkle is near the most dazzling thing you see.' },
+  { id:73, name:'Sparkle',  emoji:'💫', color:'#ffe082', rarity:'rare',      intro:'Ta-da~! Found me!',            clue:'Twinkle blinks in and out — be patient.' },
+  { id:74, name:'Twinkle',  emoji:'⭐', color:'#fff176', rarity:'rare',      intro:'Twinkle twinkle little star~!',clue:'Glimmer is at the edge of the world — go far.' },
+  { id:75, name:'Glimmer',  emoji:'🌟', color:'#ffee58', rarity:'rare',      intro:'A soft glow in the dark~',     clue:'Radiance lives where the sky meets land.' },
+  { id:76, name:'Radiance', emoji:'☀️', color:'#ffd54f', rarity:'rare',      intro:'I am pure light~!',            clue:'Aurora dances at the very edges of the map.' },
+  { id:77, name:'Aurora',   emoji:'🌌', color:'#7c4dff', rarity:'rare',      intro:'Northern lights, southern heart!',clue:'Celestia is always overhead — look up and out.' },
+  { id:78, name:'Celestia', emoji:'🌠', color:'#e8eaf6', rarity:'rare',      intro:'Star-born and sky-kissed~!',   clue:'Luna rests where moonlight pools.' },
+  { id:79, name:'Luna',     emoji:'🌙', color:'#e1bee7', rarity:'rare',      intro:'Moon maiden at your service~!',clue:'Solara blazes at high noon at the south.' },
+  { id:80, name:'Solara',   emoji:'🌞', color:'#ffd54f', rarity:'rare',      intro:'Sun\'s beloved child~!',       clue:'Nebula drifts where colors blend together.' },
+  { id:81, name:'Nebula',   emoji:'🌌', color:'#7c4dff', rarity:'rare',      intro:'Born from stardust~',          clue:'Cosmos is at the very center of everything.' },
+  { id:82, name:'Cosmos',   emoji:'🌌', color:'#512da8', rarity:'rare',      intro:'The universe, compressed kawaii!',clue:'Stardust scatters — look at the highest altitude.' },
+  { id:83, name:'Stardust', emoji:'✨', color:'#e040fb', rarity:'rare',      intro:'I am what stars leave behind~',clue:'Galaxy swirls far to the east.' },
+  { id:84, name:'Galaxy',   emoji:'🌌', color:'#3f51b5', rarity:'rare',      intro:'A galaxy in your pocket~!',    clue:'Nova explodes with energy — look in open spaces.' },
+  { id:85, name:'Nova',     emoji:'💥', color:'#ff6f00', rarity:'rare',      intro:'Supernova kawaii style~!',     clue:'Comet streaks! Look along straight paths far away.' },
+  { id:86, name:'Comet',    emoji:'☄️', color:'#ff8f00', rarity:'rare',      intro:'Blazing trail of cuteness~!',  clue:'Meteor lands hard — look for the most remote spot.' },
+  { id:87, name:'Meteor',   emoji:'🌠', color:'#ef6c00', rarity:'rare',      intro:'Crash landed, still cute!',    clue:'Eclipse hides where light and dark meet.' },
+  { id:88, name:'Eclipse',  emoji:'🌑', color:'#1a237e', rarity:'rare',      intro:'I block the sun, but I\'m sweet~!',clue:'Solstice marks the turning point — farthest north or south.' },
+  { id:89, name:'Solstice', emoji:'☯️', color:'#4dd0e1', rarity:'rare',      intro:'Balance and beauty~!',         clue:'Seraphim is the rarest of all — explore everywhere.' },
+  // Legendary (10)
+  { id:90, name:'Seraphim', emoji:'👼', color:'#fff9c4', rarity:'legendary', intro:'An angel descended for you~!', clue:'I only appear to those who have caught many others. Keep going!' },
+  { id:91, name:'Ethereal', emoji:'🌫️', color:'#e8eaf6', rarity:'legendary', intro:'Between worlds, between moments~',clue:'Arcana guards ancient knowledge — explore everything.' },
+  { id:92, name:'Arcana',   emoji:'🔮', color:'#7c4dff', rarity:'legendary', intro:'Mystic and magnificent~!',     clue:'Luminary shines where no shadow falls.' },
+  { id:93, name:'Luminary', emoji:'💡', color:'#ffd54f', rarity:'legendary', intro:'The light of all worlds~!',    clue:'Divinity is found in peaceful places.' },
+  { id:94, name:'Divinity', emoji:'✨', color:'#fff9c4', rarity:'legendary', intro:'Divine kawaii perfection~!',   clue:'Omniveil covers everything — search the whole map.' },
+  { id:95, name:'Omniveil', emoji:'🌐', color:'#4fc3f7', rarity:'legendary', intro:'I see all, and I\'m adorable!',clue:'Transcend goes beyond — look at the very edge.' },
+  { id:96, name:'Transcend',emoji:'🦋', color:'#ce93d8', rarity:'legendary', intro:'Beyond limits, beyond cute!',  clue:'Infinity has no end — keep walking and you\'ll find me.' },
+  { id:97, name:'Infinity', emoji:'♾️', color:'#e040fb', rarity:'legendary', intro:'Forever yours~!',             clue:'Eternity waits at the place you least expect.' },
+  { id:98, name:'Eternity', emoji:'⏳', color:'#b39ddb', rarity:'legendary', intro:'Time means nothing to the kawaii~',clue:'Genesis is the beginning — think about where you started.' },
+  { id:99, name:'Genesis',  emoji:'🌱', color:'#a5d6a7', rarity:'legendary', intro:'The first, and the most special~!',clue:'You\'ve found me! You are a true Kawaii Master!' },
+];
 
-const TILE = 32;
-const COLS = 20;
-const ROWS = 15;
+// ========================================================
+// TERRAIN NOISE (simple Perlin-like)
+// ========================================================
+function noise2D(x, z) {
+  const X = Math.floor(x) & 255, Z = Math.floor(z) & 255;
+  x -= Math.floor(x); z -= Math.floor(z);
+  const u = fade(x), v = fade(z);
+  const a = p[X]+Z, b = p[X+1]+Z;
+  return lerp(v,
+    lerp(u, grad(p[a],   x,   z),   grad(p[b],   x-1, z)),
+    lerp(u, grad(p[a+1], x,   z-1), grad(p[b+1], x-1, z-1))
+  );
+}
+function fade(t){ return t*t*t*(t*(t*6-15)+10); }
+function lerp(t,a,b){ return a+t*(b-a); }
+function grad(hash,x,z){
+  const h=hash&3;
+  return ((h&1)?-x:x)+((h&2)?-z:z);
+}
+const p = (() => {
+  const arr = Array.from({length:256},(_,i)=>i);
+  for(let i=255;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return [...arr,...arr];
+})();
 
-const T = { FLOOR: 0, WALL: 1, GRASS: 2, WATER: 3, DARK: 4, LAVA: 5, PORTAL_FLOOR: 6 };
+function getHeight(x, z) {
+  let h = 0;
+  h += noise2D(x*0.008, z*0.008) * 18;
+  h += noise2D(x*0.02,  z*0.02)  * 8;
+  h += noise2D(x*0.06,  z*0.06)  * 3;
+  h += noise2D(x*0.15,  z*0.15)  * 1;
+  return h;
+}
 
-const CHARS = ['🐰','🐱','🐻','🦊'];
-let selectedChar = 0;
+// ========================================================
+// GAME STATE
+// ========================================================
+const WORLD_SIZE = 400;
+const CHAR_SPAWN_RADIUS = 180;
+let caught = new Set();
+let caughtSave = JSON.parse(localStorage.getItem('kawaii_caught') || '[]');
+caughtSave.forEach(id => caught.add(id));
 
-document.querySelectorAll('.charBtn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    selectedChar = parseInt(btn.dataset.char);
-    document.querySelectorAll('.charBtn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    if (!gameRunning) return;
-    player.emoji = CHARS[selectedChar];
+let buildMode = false;
+let selectedBlockColor = '#ffb6c1';
+const placedBlocks = new Map(); // key => mesh
+const BLOCK_COLORS = ['#ffb6c1','#ffd6a5','#fdffb6','#caffbf','#9bf6ff','#bdb2ff','#ffffff','#a8dadc'];
+
+let nearbyChar = null;
+let dialogueChar = null;
+let locked = false;
+let playerVel = new THREE.Vector3();
+const PLAYER_SPEED = 12;
+const PLAYER_HEIGHT = 1.7;
+const GRAVITY = 20;
+let onGround = false;
+
+// ========================================================
+// THREE.JS SETUP
+// ========================================================
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0xddeeff, 60, 280);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 400);
+
+// ========================================================
+// LIGHTING
+// ========================================================
+const ambientLight = new THREE.AmbientLight(0xffeedd, 0.6);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xfff5e0, 1.4);
+sunLight.position.set(80, 120, 60);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width  = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far  = 400;
+sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -180;
+sunLight.shadow.camera.right = sunLight.shadow.camera.top  =  180;
+sunLight.shadow.bias = -0.001;
+scene.add(sunLight);
+
+const fillLight = new THREE.DirectionalLight(0xaaccff, 0.3);
+fillLight.position.set(-40, 20, -60);
+scene.add(fillLight);
+
+const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x558b2f, 0.4);
+scene.add(hemiLight);
+
+// ========================================================
+// TERRAIN
+// ========================================================
+const TERRAIN_SEGS = 150;
+const terrainGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, TERRAIN_SEGS, TERRAIN_SEGS);
+terrainGeo.rotateX(-Math.PI/2);
+
+const posArr = terrainGeo.attributes.position.array;
+for(let i=0; i<posArr.length; i+=3) {
+  const x = posArr[i], z = posArr[i+2];
+  posArr[i+1] = getHeight(x, z);
+}
+terrainGeo.computeVertexNormals();
+
+// Vertex color for terrain realism
+const colors = [];
+const normArr = terrainGeo.attributes.normal.array;
+for(let i=0; i<posArr.length/3; i++) {
+  const y = posArr[i*3+1];
+  const nx = normArr[i*3+1]; // up-ness
+  if(y < -2) { colors.push(0.55,0.45,0.3); }     // dirt/sand
+  else if(nx < 0.7) { colors.push(0.45,0.38,0.28); } // cliff
+  else if(y > 10)  { colors.push(0.85,0.85,0.85); }  // snow
+  else { colors.push(0.3+Math.random()*0.05, 0.6+Math.random()*0.08, 0.25+Math.random()*0.05); }
+}
+terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+const terrainMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+terrain.receiveShadow = true;
+scene.add(terrain);
+
+// ========================================================
+// WATER
+// ========================================================
+const waterGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE);
+waterGeo.rotateX(-Math.PI/2);
+const waterMat = new THREE.MeshPhongMaterial({
+  color: 0x64b5f6, transparent: true, opacity: 0.75,
+  shininess: 100, specular: 0xffffff
+});
+const water = new THREE.Mesh(waterGeo, waterMat);
+water.position.y = -1.5;
+water.receiveShadow = false;
+scene.add(water);
+
+// ========================================================
+// SKYBOX / CLOUDS
+// ========================================================
+function makeClouds() {
+  const mat = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+  for(let i=0;i<25;i++) {
+    const g = new THREE.Group();
+    const cnt = 3+Math.floor(Math.random()*4);
+    for(let j=0;j<cnt;j++) {
+      const r = 4+Math.random()*6;
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(r,8,6), mat);
+      sphere.position.set(j*r*0.9, Math.random()*3, Math.random()*r*0.5);
+      g.add(sphere);
+    }
+    g.position.set(
+      (Math.random()-0.5)*350,
+      60+Math.random()*30,
+      (Math.random()-0.5)*350
+    );
+    scene.add(g);
+  }
+}
+makeClouds();
+
+// ========================================================
+// TREES
+// ========================================================
+function makeTree(x, z) {
+  const terrY = getHeight(x, z);
+  if(terrY < -1) return; // skip water areas
+  const g = new THREE.Group();
+
+  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
+  const trunkH = 2.5 + Math.random()*2;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, trunkH, 7), trunkMat);
+  trunk.position.y = trunkH/2;
+  trunk.castShadow = true;
+  g.add(trunk);
+
+  // pastel kawaii leaves
+  const leafColors = [0x81c784, 0xa5d6a7, 0xf48fb1, 0xf8bbd0, 0xce93d8];
+  const leafMat = new THREE.MeshLambertMaterial({ color: leafColors[Math.floor(Math.random()*leafColors.length)] });
+  const leafLayers = 2 + Math.floor(Math.random()*2);
+  for(let l=0;l<leafLayers;l++) {
+    const r = 2.5 - l*0.5 + Math.random()*0.5;
+    const h = 2.5 - l*0.4;
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), leafMat);
+    cone.position.y = trunkH + l*1.2;
+    cone.castShadow = true;
+    g.add(cone);
+  }
+  g.position.set(x, terrY, z);
+  scene.add(g);
+}
+
+for(let i=0;i<300;i++) {
+  const angle = Math.random()*Math.PI*2;
+  const dist  = 15+Math.random()*CHAR_SPAWN_RADIUS;
+  makeTree(Math.cos(angle)*dist, Math.sin(angle)*dist);
+}
+
+// ========================================================
+// FLOWERS / DECORATIONS
+// ========================================================
+function makeFlower(x, z) {
+  const y = getHeight(x, z);
+  if(y < 0) return;
+  const flowerColors = [0xff69b4, 0xff6b6b, 0xffe066, 0xb39ddb, 0xffffff];
+  const mat = new THREE.MeshLambertMaterial({ color: flowerColors[Math.floor(Math.random()*flowerColors.length)] });
+  const g = new THREE.Group();
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.5,5), new THREE.MeshLambertMaterial({color:0x66bb6a}));
+  stem.position.y = 0.25;
+  g.add(stem);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15,7,7), mat);
+  head.position.y = 0.6;
+  g.add(head);
+  g.position.set(x, y, z);
+  scene.add(g);
+}
+for(let i=0;i<600;i++) {
+  makeFlower((Math.random()-0.5)*WORLD_SIZE*0.9, (Math.random()-0.5)*WORLD_SIZE*0.9);
+}
+
+// Rocks
+for(let i=0;i<80;i++) {
+  const x = (Math.random()-0.5)*WORLD_SIZE*0.9;
+  const z = (Math.random()-0.5)*WORLD_SIZE*0.9;
+  const y = getHeight(x, z);
+  if(y < -1) continue;
+  const r = 0.4+Math.random()*1.2;
+  const rock = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(r, 0),
+    new THREE.MeshLambertMaterial({ color: 0x90a4ae })
+  );
+  rock.position.set(x, y + r*0.4, z);
+  rock.rotation.set(Math.random(), Math.random(), Math.random());
+  rock.castShadow = true;
+  rock.receiveShadow = true;
+  scene.add(rock);
+}
+
+// ========================================================
+// KAWAII CHARACTER 3D MODELS
+// ========================================================
+const charMeshes = []; // {mesh, data, caught}
+
+function makeKawaiiChar(charData, x, z) {
+  const y = getHeight(x, z);
+  const g = new THREE.Group();
+  g.userData = { charData, caught: caught.has(charData.id) };
+
+  const c = new THREE.Color(charData.color);
+  const mat = new THREE.MeshPhongMaterial({ color: c, shininess: 60 });
+  const darkMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 20 });
+  const whiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 80 });
+  const pinkMat  = new THREE.MeshPhongMaterial({ color: 0xff69b4, shininess: 80 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), mat);
+  body.scale.y = 0.85;
+  body.position.y = 0.38;
+  body.castShadow = true;
+  g.add(body);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), mat);
+  head.position.y = 1.05;
+  head.castShadow = true;
+  g.add(head);
+
+  // Eyes
+  [-0.13,0.13].forEach(ex => {
+    const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8), whiteMat);
+    eyeWhite.position.set(ex, 1.1, 0.3);
+    g.add(eyeWhite);
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8), darkMat);
+    pupil.position.set(ex, 1.1, 0.36);
+    g.add(pupil);
+    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.02,6,6), whiteMat);
+    shine.position.set(ex+0.03, 1.13, 0.41);
+    g.add(shine);
   });
+
+  // Blush
+  [-0.22,0.22].forEach(bx => {
+    const blush = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,6), pinkMat);
+    blush.position.set(bx, 1.03, 0.34);
+    blush.scale.z = 0.3;
+    g.add(blush);
+  });
+
+  // Ears (bunny-like)
+  [-0.2,0.2].forEach(ex => {
+    const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.35,7), mat);
+    ear.position.set(ex, 1.42, 0);
+    ear.rotation.z = ex > 0 ? -0.2 : 0.2;
+    g.add(ear);
+  });
+
+  // Tiny accessory per rarity
+  if(charData.rarity === 'legendary') {
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.28,0.04,8,20),
+      new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:0.5}));
+    halo.position.y = 1.55;
+    halo.rotation.x = 0.3;
+    g.add(halo);
+  } else if(charData.rarity === 'rare') {
+    const crown = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.25,5),
+      new THREE.MeshPhongMaterial({color:0xffd700}));
+    crown.position.y = 1.55;
+    g.add(crown);
+  }
+
+  // Bounce animation offset
+  g.userData.bounceOffset = Math.random()*Math.PI*2;
+  g.userData.baseY = y + 0.05;
+
+  g.position.set(x, y + 0.05, z);
+
+  // Glow point light
+  const glow = new THREE.PointLight(c, caught.has(charData.id) ? 0 : 1.2, 6);
+  glow.position.set(0, 1, 0);
+  g.add(glow);
+  g.userData.glow = glow;
+
+  scene.add(g);
+  charMeshes.push(g);
+
+  if(caught.has(charData.id)) setCharCaught(g);
+}
+
+function setCharCaught(g) {
+  g.userData.caught = true;
+  g.userData.glow.intensity = 0;
+  g.traverse(child => {
+    if(child.isMesh && child.material) {
+      child.material = child.material.clone();
+      child.material.transparent = true;
+      child.material.opacity = 0.0;
+    }
+  });
+  g.visible = false;
+}
+
+// Spawn characters around the world
+KAWAII_CHARS.forEach((ch, i) => {
+  const angle = (i / 100) * Math.PI * 2 + Math.random() * 0.8;
+  let radius;
+  if(ch.rarity === 'common')    radius = 30  + Math.random() * 80;
+  if(ch.rarity === 'uncommon')  radius = 60  + Math.random() * 100;
+  if(ch.rarity === 'rare')      radius = 100 + Math.random() * 60;
+  if(ch.rarity === 'legendary') radius = 140 + Math.random() * 40;
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  makeKawaiiChar(ch, x, z);
 });
 
-const overworldMap = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
-  [1,2,2,2,2,2,1,2,2,1,1,1,2,2,2,2,2,2,2,1],
-  [1,2,2,1,2,2,2,2,2,1,2,2,2,2,1,1,1,2,2,1],
-  [1,2,2,1,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,1],
-  [1,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,1,2,2,1],
-  [1,2,2,2,2,2,2,2,3,3,3,2,2,2,2,2,2,2,2,1],
-  [1,2,2,2,2,2,2,2,3,3,3,2,2,2,2,2,2,2,2,1],
-  [1,2,2,2,2,1,1,2,2,2,2,2,1,1,2,2,2,2,2,1],
-  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-  [1,2,2,1,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1],
-  [1,2,2,1,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,1],
-  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-];
+// ========================================================
+// BUILDING SYSTEM
+// ========================================================
+const buildMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1, transparent: true, opacity: 0.6 });
+const ghostBlock = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), buildMat);
+scene.add(ghostBlock);
+ghostBlock.visible = false;
 
-const underworldMap = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,4,4,4,4,4,1,4,4,4,4,4,4,4,4,4,4,4,4,1],
-  [1,4,4,4,4,4,1,4,4,1,1,1,4,4,4,4,4,4,4,1],
-  [1,4,4,1,4,4,4,4,4,1,4,4,4,4,1,1,1,4,4,1],
-  [1,4,4,1,4,4,4,4,4,1,4,4,4,4,4,4,1,4,4,1],
-  [1,4,4,1,1,4,4,4,4,4,4,4,4,4,4,4,1,4,4,1],
-  [1,4,4,4,4,4,4,4,5,5,5,4,4,4,4,4,4,4,4,1],
-  [1,4,4,4,4,4,4,4,5,5,5,4,4,4,4,4,4,4,4,1],
-  [1,4,4,4,4,1,1,4,4,4,4,4,1,1,4,4,4,4,4,1],
-  [1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1],
-  [1,4,4,1,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,1],
-  [1,4,4,1,4,4,4,4,4,4,4,4,4,4,1,4,4,4,4,1],
-  [1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1],
-  [1,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-];
+const BLOCK_SIZE = 2;
+function blockKey(x,y,z) { return `${x},${y},${z}`; }
 
-let currentMap = 'overworld';
-let keys = {};
-let keysCollected = 0;
-let portalOpen = false;
-let gemFound = false;
-let gameRunning = true;
-let msgTimer = 0;
-let particles = [];
-let floatTexts = [];
-let animFrame = 0;
-
-const player = {
-  x: 1.5 * TILE, y: 1.5 * TILE,
-  vx: 0, vy: 0,
-  speed: 2.5,
-  emoji: CHARS[0],
-  facing: 1,
-  bobOffset: 0,
-  trail: []
-};
-
-const overworldItems = [
-  { type: 'key', x: 3, y: 3, emoji: '🗝️', collected: false, id: 0 },
-  { type: 'key', x: 15, y: 5, emoji: '🗝️', collected: false, id: 1 },
-  { type: 'key', x: 9, y: 12, emoji: '🗝️', collected: false, id: 2 },
-  { type: 'portal', x: 10, y: 9, emoji: '🌀', active: false },
-  { type: 'flower', x: 5, y: 6, emoji: '🌸', collected: false },
-  { type: 'flower', x: 13, y: 3, emoji: '🌺', collected: false },
-  { type: 'flower', x: 17, y: 11, emoji: '🌼', collected: false },
-  { type: 'mushroom', x: 7, y: 11, emoji: '🍄', collected: false },
-  { type: 'star', x: 2, y: 12, emoji: '⭐', collected: false },
-  { type: 'candy', x: 16, y: 2, emoji: '🍬', collected: false },
-];
-
-const underworldItems = [
-  { type: 'gem', x: 10, y: 7, emoji: '💎', collected: false, glow: 0 },
-  { type: 'portal_back', x: 2, y: 2, emoji: '🌀', active: true },
-  { type: 'skull', x: 5, y: 9, emoji: '💀', collected: false },
-  { type: 'skull', x: 15, y: 4, emoji: '💀', collected: false },
-  { type: 'flame', x: 8, y: 6, emoji: '🔥', collected: false },
-  { type: 'flame', x: 12, y: 6, emoji: '🔥', collected: false },
-  { type: 'bone', x: 3, y: 12, emoji: '🦴', collected: false },
-  { type: 'crystal', x: 16, y: 12, emoji: '🔮', collected: false },
-];
-
-function getItems() {
-  return currentMap === 'overworld' ? overworldItems : underworldItems;
-}
-function getMap() {
-  return currentMap === 'overworld' ? overworldMap : underworldMap;
+function placeBlock(pos) {
+  const gx = Math.round(pos.x/BLOCK_SIZE)*BLOCK_SIZE;
+  const gy = Math.round(pos.y/BLOCK_SIZE)*BLOCK_SIZE;
+  const gz = Math.round(pos.z/BLOCK_SIZE)*BLOCK_SIZE;
+  const key = blockKey(gx,gy,gz);
+  if(placedBlocks.has(key)) return;
+  const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(selectedBlockColor) });
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE), mat);
+  mesh.position.set(gx,gy,gz);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+  placedBlocks.set(key, mesh);
 }
 
-function isSolid(tx, ty) {
-  const map = getMap();
-  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return true;
-  const t = map[ty][tx];
-  return t === T.WALL;
+function removeBlock(pos) {
+  const gx = Math.round(pos.x/BLOCK_SIZE)*BLOCK_SIZE;
+  const gy = Math.round(pos.y/BLOCK_SIZE)*BLOCK_SIZE;
+  const gz = Math.round(pos.z/BLOCK_SIZE)*BLOCK_SIZE;
+  const key = blockKey(gx,gy,gz);
+  if(!placedBlocks.has(key)) return;
+  scene.remove(placedBlocks.get(key));
+  placedBlocks.delete(key);
 }
 
-function tryMove(px, py, dx, dy) {
-  const r = 10;
-  let nx = px + dx;
-  let ny = py + dy;
-  const corners = [
-    [nx - r, py - r], [nx + r, py - r], [nx - r, py + r], [nx + r, py + r]
-  ];
-  for (const [cx, cy] of corners) {
-    if (isSolid(Math.floor(cx / TILE), Math.floor(cy / TILE))) {
-      nx = px;
-      break;
-    }
-  }
-  const corners2 = [
-    [px - r, ny - r], [px + r, ny - r], [px - r, ny + r], [px + r, ny + r]
-  ];
-  for (const [cx, cy] of corners2) {
-    if (isSolid(Math.floor(cx / TILE), Math.floor(cy / TILE))) {
-      ny = py;
-      break;
-    }
-  }
-  return [nx, ny];
-}
-
-function showMessage(text, duration = 120) {
-  const el = document.getElementById('message');
-  el.textContent = text;
-  el.style.opacity = '1';
-  msgTimer = duration;
-}
-
-function spawnParticles(x, y, count, color, emoji = null) {
-  for (let i = 0; i < count; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 4,
-      vy: (Math.random() - 2) * 3,
-      life: 1,
-      decay: 0.02 + Math.random() * 0.02,
-      color: color || `hsl(${Math.random()*60+300},100%,70%)`,
-      size: 4 + Math.random() * 6,
-      emoji
-    });
-  }
-}
-
-function spawnFloatText(x, y, text) {
-  floatTexts.push({ x, y, text, life: 1, vy: -1 });
-}
-
-function drawTile(tx, ty, type) {
-  const x = tx * TILE, y = ty * TILE;
-  switch (type) {
-    case T.FLOOR:
-      ctx.fillStyle = '#d4a0c8';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = 'rgba(255,255,255,0.05)';
-      ctx.fillRect(x + 1, y + 1, TILE - 2, TILE - 2);
-      break;
-    case T.WALL:
-      ctx.fillStyle = '#7a3fa0';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = '#5a2a80';
-      ctx.fillRect(x + 2, y + 2, TILE - 4, TILE - 4);
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.fillRect(x, y, TILE, 2);
-      ctx.fillRect(x, y, 2, TILE);
-      break;
-    case T.GRASS:
-      ctx.fillStyle = '#98e098';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = '#7acc7a';
-      ctx.fillRect(x + 1, y + 1, TILE - 2, TILE - 2);
-      if ((tx + ty) % 3 === 0) {
-        ctx.fillStyle = '#66bb66';
-        ctx.fillRect(x + 8, y + 20, 2, 8);
-        ctx.fillRect(x + 16, y + 18, 2, 10);
-        ctx.fillRect(x + 24, y + 22, 2, 6);
-      }
-      break;
-    case T.WATER:
-      const wave = Math.sin(animFrame * 0.05 + tx * 0.5 + ty * 0.3) * 3;
-      ctx.fillStyle = `hsl(${200 + wave * 2}, 70%, 60%)`;
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = 'rgba(255,255,255,0.2)';
-      ctx.fillRect(x + 4, y + 8 + wave, 10, 3);
-      ctx.fillRect(x + 18, y + 18 - wave, 8, 3);
-      break;
-    case T.DARK:
-      ctx.fillStyle = '#1a0a2e';
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = '#2a1040';
-      ctx.fillRect(x + 1, y + 1, TILE - 2, TILE - 2);
-      break;
-    case T.LAVA:
-      const lv = Math.sin(animFrame * 0.08 + tx * 0.7 + ty * 0.4) * 20;
-      ctx.fillStyle = `hsl(${20 + lv}, 100%, 50%)`;
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = `hsl(${40 + lv}, 100%, 65%)`;
-      ctx.fillRect(x + 4, y + 12, 10, 4);
-      ctx.fillRect(x + 16, y + 8, 8, 4);
-      break;
-    case T.PORTAL_FLOOR:
-      ctx.fillStyle = '#3a1060';
-      ctx.fillRect(x, y, TILE, TILE);
-      break;
-  }
-}
-
-function drawMap() {
-  const map = getMap();
-  for (let ty = 0; ty < ROWS; ty++) {
-    for (let tx = 0; tx < COLS; tx++) {
-      drawTile(tx, ty, map[ty][tx]);
-    }
-  }
-}
-
-function drawItems() {
-  const items = getItems();
-  ctx.font = '22px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (const item of items) {
-    if (item.collected) continue;
-    const px = item.x * TILE + TILE / 2;
-    const py = item.y * TILE + TILE / 2;
-
-    if (item.type === 'portal' || item.type === 'portal_back') {
-      const isPortalActive = item.type === 'portal' ? portalOpen : true;
-      if (!isPortalActive && item.type === 'portal') {
-        ctx.font = '20px serif';
-        ctx.fillText('🔒', px, py);
-        continue;
-      }
-      const spin = animFrame * 0.05;
-      for (let i = 0; i < 6; i++) {
-        const a = spin + (i / 6) * Math.PI * 2;
-        const r = 14 + Math.sin(animFrame * 0.1) * 2;
-        ctx.fillStyle = i % 2 === 0 ? '#bb44ff' : '#ff44bb';
-        ctx.beginPath();
-        ctx.arc(px + Math.cos(a) * r, py + Math.sin(a) * r, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.font = '22px serif';
-      ctx.fillText('🌀', px, py);
-      continue;
-    }
-
-    if (item.type === 'gem') {
-      item.glow = (item.glow || 0) + 0.05;
-      const g = Math.abs(Math.sin(item.glow)) * 20;
-      ctx.shadowColor = '#00ffff';
-      ctx.shadowBlur = 15 + g;
-      ctx.font = '28px serif';
-      ctx.fillText(item.emoji, px, py - Math.sin(animFrame * 0.04) * 4);
-      ctx.shadowBlur = 0;
-      ctx.font = '22px serif';
-      continue;
-    }
-
-    const bob = Math.sin(animFrame * 0.04 + item.x + item.y) * 3;
-    ctx.fillText(item.emoji, px, py + bob);
-  }
-}
-
-function drawPortalGlow() {
-  if (currentMap !== 'overworld') return;
-  const portal = overworldItems.find(i => i.type === 'portal');
-  if (!portal || !portalOpen) return;
-  const px = portal.x * TILE + TILE / 2;
-  const py = portal.y * TILE + TILE / 2;
-  const grad = ctx.createRadialGradient(px, py, 4, px, py, 40);
-  const t = animFrame * 0.04;
-  grad.addColorStop(0, `hsla(${270 + Math.sin(t)*30},100%,70%,0.6)`);
-  grad.addColorStop(1, 'hsla(270,100%,30%,0)');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(px, py, 40, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawPlayer() {
-  for (let i = 0; i < player.trail.length; i++) {
-    const t = player.trail[i];
-    const alpha = (i / player.trail.length) * 0.4;
-    ctx.globalAlpha = alpha;
-    ctx.font = '18px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(player.emoji, t.x, t.y);
-  }
-  ctx.globalAlpha = 1;
-
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.beginPath();
-  ctx.ellipse(player.x, player.y + 14, 12, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.save();
-  if (player.facing < 0) {
-    ctx.translate(player.x, player.y);
-    ctx.scale(-1, 1);
-    ctx.translate(-player.x, -player.y);
-  }
-  ctx.font = '28px serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const bob = Math.sin(animFrame * 0.12) * 2;
-  ctx.fillText(player.emoji, player.x, player.y + bob);
-  ctx.restore();
-}
-
-function drawParticles() {
-  for (const p of particles) {
-    ctx.globalAlpha = p.life;
-    if (p.emoji) {
-      ctx.font = `${p.size * 1.5}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(p.emoji, p.x, p.y);
-    } else {
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  ctx.globalAlpha = 1;
-}
-
-function drawFloatTexts() {
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  for (const ft of floatTexts) {
-    ctx.globalAlpha = ft.life;
-    ctx.font = 'bold 16px serif';
-    ctx.fillStyle = '#fff';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 3;
-    ctx.strokeText(ft.text, ft.x, ft.y);
-    ctx.fillText(ft.text, ft.x, ft.y);
-  }
-  ctx.globalAlpha = 1;
-  ctx.lineWidth = 1;
-}
-
-function drawBackground() {
-  if (currentMap === 'underworld') {
-    ctx.fillStyle = '#0d0020';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < 3; i++) {
-      const gx = [160, 320, 480][i];
-      const gy = [120, 240, 360][i];
-      const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 80);
-      grad.addColorStop(0, 'rgba(150,0,50,0.15)');
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-  }
-}
-
-function updateUI() {
-  document.getElementById('keyCount').textContent = `🗝️ Keys: ${keysCollected} / 3`;
-  document.getElementById('zone').textContent = currentMap === 'overworld' ? '📍 Overworld' : '🌑 Underworld';
-}
-
-document.addEventListener('keydown', e => { keys[e.key] = true; e.preventDefault(); });
-document.addEventListener('keyup', e => { keys[e.key] = false; });
-
-function isKeyDown(k) {
-  return keys[k] || false;
-}
-
-function interact() {
-  const items = getItems();
-  const px = player.x, py = player.y;
-
-  for (const item of items) {
-    if (item.collected) continue;
-    const ix = item.x * TILE + TILE / 2;
-    const iy = item.y * TILE + TILE / 2;
-    const dist = Math.hypot(px - ix, py - iy);
-    if (dist > TILE * 1.2) continue;
-
-    if (item.type === 'key') {
-      item.collected = true;
-      keysCollected++;
-      spawnParticles(ix, iy, 12, null, '✨');
-      spawnFloatText(ix, iy - 20, `+Key! (${keysCollected}/3)`);
-      if (keysCollected >= 3) {
-        portalOpen = true;
-        showMessage('✨ You have all 3 keys! The portal to the Underworld has opened! 🌀');
-        const portal = overworldItems.find(i => i.type === 'portal');
-        if (portal) spawnParticles(portal.x * TILE + 16, portal.y * TILE + 16, 20, '#bb44ff');
-      } else {
-        showMessage(`🗝️ Key ${keysCollected} collected! ${3 - keysCollected} more to go!`);
-      }
-      updateUI();
-      return;
-    }
-
-    if (item.type === 'portal' && portalOpen) {
-      currentMap = 'underworld';
-      player.x = 2.5 * TILE;
-      player.y = 2.5 * TILE;
-      showMessage('😱 You entered the Underworld! Find the Gem of Eternity! 💎');
-      spawnParticles(px, py, 20, '#9b00ff');
-      updateUI();
-      return;
-    }
-
-    if (item.type === 'portal_back') {
-      currentMap = 'overworld';
-      player.x = 10.5 * TILE;
-      player.y = 9.5 * TILE;
-      showMessage('🌸 Back in the Overworld! So bright and fluffy!');
-      spawnParticles(px, py, 15, '#ff88ff');
-      updateUI();
-      return;
-    }
-
-    if (item.type === 'gem') {
-      item.collected = true;
-      gemFound = true;
-      spawnParticles(ix, iy, 30, null, '💎');
-      spawnParticles(ix, iy, 20, '#00ffff');
-      setTimeout(() => {
-        document.getElementById('winScreen').classList.add('show');
-      }, 800);
-      return;
-    }
-
-    if (['flower','mushroom','star','candy','skull','bone','crystal','flame'].includes(item.type)) {
-      item.collected = true;
-      spawnParticles(ix, iy, 8, null, item.emoji);
-      const msgs = {
-        flower: '🌸 A cute flower! It smells lovely~',
-        mushroom: '🍄 A spotted mushroom! Very kawaii!',
-        star: '⭐ A twinkling star!',
-        candy: '🍬 Sweet candy! Yummy!',
-        skull: '💀 A spooky skull... ehehe',
-        bone: '🦴 A mysterious bone!',
-        flame: '🔥 Infernal flame! Hot hot hot!',
-        crystal: '🔮 A mystical crystal ball!',
-      };
-      showMessage(msgs[item.type] || `You found ${item.emoji}!`);
-      spawnFloatText(ix, iy - 20, item.emoji);
-      return;
-    }
-  }
-
-  if (currentMap === 'overworld' && !portalOpen && keysCollected < 3) {
-    showMessage('🗝️ Find all 3 keys scattered around the Overworld!');
-  }
-}
-
-function update() {
-  animFrame++;
-
-  let dx = 0, dy = 0;
-  if (isKeyDown('ArrowLeft') || isKeyDown('a') || isKeyDown('A')) { dx -= player.speed; player.facing = -1; }
-  if (isKeyDown('ArrowRight') || isKeyDown('d') || isKeyDown('D')) { dx += player.speed; player.facing = 1; }
-  if (isKeyDown('ArrowUp') || isKeyDown('w') || isKeyDown('W')) dy -= player.speed;
-  if (isKeyDown('ArrowDown') || isKeyDown('s') || isKeyDown('S')) dy += player.speed;
-
-  if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707; }
-
-  if (dx !== 0 || dy !== 0) {
-    player.trail.push({ x: player.x, y: player.y });
-    if (player.trail.length > 6) player.trail.shift();
-  }
-
-  const [nx, ny] = tryMove(player.x, player.y, dx, dy);
-  player.x = nx;
-  player.y = ny;
-
-  if ((keys['e'] || keys['E']) && !keys['_eWas']) {
-    interact();
-  }
-  keys['_eWas'] = keys['e'] || keys['E'];
-
-  for (const p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.1;
-    p.life -= p.decay;
-  }
-  particles = particles.filter(p => p.life > 0);
-
-  for (const ft of floatTexts) {
-    ft.y += ft.vy;
-    ft.life -= 0.02;
-  }
-  floatTexts = floatTexts.filter(ft => ft.life > 0);
-
-  if (msgTimer > 0) {
-    msgTimer--;
-    if (msgTimer <= 20) {
-      document.getElementById('message').style.opacity = (msgTimer / 20).toString();
-    }
-  }
-}
-
-function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBackground();
-  drawMap();
-  drawPortalGlow();
-  drawItems();
-  drawPlayer();
-  drawParticles();
-  drawFloatTexts();
-}
-
-function loop() {
-  if (gameRunning) {
-    update();
-    render();
-  }
-  requestAnimationFrame(loop);
-}
-
-const SAVE_KEY = 'kawaiiPortalQuest_v1';
-
-function saveGame() {
-  const data = {
-    currentMap,
-    keysCollected,
-    portalOpen,
-    gemFound,
-    selectedChar,
-    playerX: player.x,
-    playerY: player.y,
-    overworldItems: overworldItems.map(i => ({ collected: i.collected })),
-    underworldItems: underworldItems.map(i => ({ collected: i.collected })),
+// Block palette
+const palette = document.getElementById('block-palette');
+BLOCK_COLORS.forEach((col, i) => {
+  const btn = document.createElement('div');
+  btn.className = 'palette-block' + (i===0?' selected':'');
+  btn.style.background = col;
+  btn.onclick = () => {
+    selectedBlockColor = col;
+    document.querySelectorAll('.palette-block').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    buildMat.color.set(col);
   };
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
-}
-
-function loadGame() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    currentMap = data.currentMap || 'overworld';
-    keysCollected = data.keysCollected || 0;
-    portalOpen = data.portalOpen || false;
-    gemFound = data.gemFound || false;
-    selectedChar = data.selectedChar || 0;
-    player.x = data.playerX || 1.5 * TILE;
-    player.y = data.playerY || 1.5 * TILE;
-    player.emoji = CHARS[selectedChar];
-    document.querySelectorAll('.charBtn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`.charBtn[data-char="${selectedChar}"]`).classList.add('active');
-    if (data.overworldItems) data.overworldItems.forEach((s, i) => { if (overworldItems[i]) overworldItems[i].collected = s.collected; });
-    if (data.underworldItems) data.underworldItems.forEach((s, i) => { if (underworldItems[i]) underworldItems[i].collected = s.collected; });
-    return true;
-  } catch(e) { return false; }
-}
-
-function clearSave() {
-  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-}
-
-setInterval(saveGame, 5000);
-
-document.getElementById('restartBtn').addEventListener('click', () => {
-  document.getElementById('winScreen').classList.remove('show');
-  clearSave();
-  currentMap = 'overworld';
-  player.x = 1.5 * TILE;
-  player.y = 1.5 * TILE;
-  player.trail = [];
-  keysCollected = 0;
-  portalOpen = false;
-  gemFound = false;
-  particles = [];
-  floatTexts = [];
-  animFrame = 0;
-  overworldItems.forEach(i => { i.collected = false; if (i.type === 'portal') i.active = false; });
-  underworldItems.forEach(i => { i.collected = false; });
-  updateUI();
-  showMessage('🌸 Welcome to the Kawaii Portal Quest! Find the 3 keys! 🗝️');
+  palette.appendChild(btn);
 });
 
-const resumed = loadGame();
-updateUI();
-if (resumed && !gemFound) {
-  showMessage(`🌸 Welcome back! Keys: ${keysCollected}/3 ${portalOpen ? '— Portal is open! 🌀' : ''}`);
-} else {
-  showMessage('🌸 Welcome to the Kawaii Portal Quest! Find the 3 keys! 🗝️');
+// ========================================================
+// RAYCASTER for building
+// ========================================================
+const raycaster = new THREE.Raycaster();
+const center2D = new THREE.Vector2(0, 0);
+
+function getBuildTarget() {
+  raycaster.setFromCamera(center2D, camera);
+  const targets = [terrain, ...placedBlocks.values()];
+  const hits = raycaster.intersectObjects(targets, false);
+  if(!hits.length) return null;
+  const hit = hits[0];
+  if(hit.distance > 8) return null;
+  return hit;
 }
-loop();
+
+// ========================================================
+// PLAYER CONTROLLER
+// ========================================================
+const keys = {};
+let yaw = 0, pitch = 0;
+
+document.addEventListener('keydown', e => {
+  keys[e.code] = true;
+  if(e.code === 'KeyB' && locked) {
+    buildMode = !buildMode;
+    document.getElementById('mode-text').textContent = buildMode ? 'Build' : 'Explore';
+    document.getElementById('mode-label').style.display = buildMode ? 'block' : 'none';
+    document.getElementById('block-palette').className = buildMode ? 'visible' : '';
+    ghostBlock.visible = buildMode;
+  }
+  if(e.code === 'KeyE' && locked && nearbyChar && !dialogueChar) {
+    openDialogue(nearbyChar);
+  }
+  if(e.code === 'Escape') {
+    closeDialogue();
+    const modal = document.getElementById('collection-modal');
+    if(modal.classList.contains('open')) modal.classList.remove('open');
+  }
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+document.addEventListener('mousemove', e => {
+  if(!locked) return;
+  yaw   -= e.movementX * 0.002;
+  pitch -= e.movementY * 0.002;
+  pitch  = Math.max(-1.3, Math.min(1.3, pitch));
+});
+
+document.addEventListener('mousedown', e => {
+  if(!locked || !buildMode) return;
+  const hit = getBuildTarget();
+  if(!hit) return;
+  if(e.button === 0) {
+    // Place on hit face normal offset
+    const p = hit.point.clone().addScaledVector(hit.face.normal, BLOCK_SIZE*0.6);
+    placeBlock(p);
+  } else if(e.button === 2) {
+    removeBlock(hit.point);
+  }
+});
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+document.addEventListener('pointerlockchange', () => {
+  locked = !!document.pointerLockElement;
+  document.getElementById('blocker').style.display = locked ? 'none' : 'flex';
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  renderer.domElement.requestPointerLock();
+});
+
+// ========================================================
+// CAMERA SPAWN
+// ========================================================
+const spawnX = 0, spawnZ = 0;
+const spawnY = getHeight(spawnX, spawnZ) + PLAYER_HEIGHT;
+camera.position.set(spawnX, spawnY, spawnZ);
+
+// ========================================================
+// COMPASS & HOT/COLD
+// ========================================================
+function updateCompass() {
+  // Find nearest uncaught character
+  let minDist = Infinity, nearest = null;
+  for(const g of charMeshes) {
+    if(g.userData.caught) continue;
+    const dx = g.position.x - camera.position.x;
+    const dz = g.position.z - camera.position.z;
+    const dist = Math.sqrt(dx*dx+dz*dz);
+    if(dist < minDist) { minDist = dist; nearest = g; }
+  }
+
+  if(!nearest) {
+    document.getElementById('compass-label').textContent = '✨ All caught!';
+    return;
+  }
+
+  // Needle angle (relative to camera yaw)
+  const dx = nearest.position.x - camera.position.x;
+  const dz = nearest.position.z - camera.position.z;
+  const worldAngle = Math.atan2(dx, dz);
+  const relAngle = worldAngle - yaw;
+  document.getElementById('compass-needle').style.transform = `rotate(${relAngle}rad)`;
+
+  // Hot/cold
+  const maxDist = 200;
+  const t = Math.max(0, Math.min(1, minDist / maxDist));
+  const pct = (1 - t) * 100;
+  document.getElementById('temp-indicator').style.left = `calc(${pct}% - 3px)`;
+
+  const name = nearest.userData.charData.name;
+  const distStr = minDist < 10 ? 'RIGHT THERE!' : minDist < 30 ? 'Very close~' : minDist < 70 ? 'Getting warm!' : minDist < 120 ? 'Keep going~' : 'Far away...';
+  document.getElementById('compass-label').textContent = `${name}: ${distStr}`;
+}
+
+// ========================================================
+// INTERACTION
+// ========================================================
+function checkNearbyChars() {
+  let closest = null, minDist = 4.5;
+  for(const g of charMeshes) {
+    if(g.userData.caught) continue;
+    const dx = g.position.x - camera.position.x;
+    const dz = g.position.z - camera.position.z;
+    const dist = Math.sqrt(dx*dx+dz*dz);
+    if(dist < minDist) { minDist = dist; closest = g; }
+  }
+  nearbyChar = closest;
+  const prompt = document.getElementById('interact-prompt');
+  if(closest && !dialogueChar) {
+    prompt.style.display = 'block';
+    prompt.innerHTML = `Press <b>E</b> to meet <b>${closest.userData.charData.emoji} ${closest.userData.charData.name}</b>!`;
+  } else {
+    prompt.style.display = 'none';
+  }
+}
+
+function openDialogue(g) {
+  dialogueChar = g;
+  const ch = g.userData.charData;
+  document.getElementById('dialogue-char-name').textContent = `${ch.emoji} ${ch.name} says:`;
+  document.getElementById('dialogue-text').textContent = ch.intro;
+  document.getElementById('dlg-catch').style.display = 'inline-flex';
+  document.getElementById('dlg-clue').style.display = 'inline-flex';
+  document.getElementById('dialogue-modal').classList.add('open');
+  document.getElementById('interact-prompt').style.display = 'none';
+}
+
+function closeDialogue() {
+  dialogueChar = null;
+  document.getElementById('dialogue-modal').classList.remove('open');
+}
+
+function catchCharacter() {
+  if(!dialogueChar) return;
+  const ch = dialogueChar.userData.charData;
+  caught.add(ch.id);
+  localStorage.setItem('kawaii_caught', JSON.stringify([...caught]));
+  setCharCaught(dialogueChar);
+  dialogueChar = null;
+  document.getElementById('dialogue-modal').classList.remove('open');
+  document.getElementById('caught-num').textContent = caught.size;
+
+  // Flash
+  const flash = document.getElementById('catch-flash');
+  document.getElementById('catch-flash-text').innerHTML = `🌸 ${ch.emoji} ${ch.name} caught! 🌸`;
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 800);
+
+  updateCollectionGrid();
+}
+
+function askClue() {
+  if(!dialogueChar) return;
+  const ch = dialogueChar.userData.charData;
+  document.getElementById('dialogue-text').textContent = '🔍 Clue: ' + ch.clue;
+  document.getElementById('dlg-catch').style.display = 'none';
+  document.getElementById('dlg-clue').style.display = 'none';
+}
+
+// ========================================================
+// COLLECTION GRID
+// ========================================================
+function updateCollectionGrid() {
+  const grid = document.getElementById('collection-grid');
+  grid.innerHTML = '';
+  KAWAII_CHARS.forEach(ch => {
+    const isCaught = caught.has(ch.id);
+    const card = document.createElement('div');
+    card.className = 'char-card' + (isCaught ? ' caught' : '');
+    card.innerHTML = `
+      <div class="char-icon" style="background:${isCaught?ch.color+'33':'#222'}">${ch.emoji}</div>
+      <div class="char-name">${isCaught ? ch.name : '???'}</div>
+      <div class="char-rarity rarity-${ch.rarity}">${ch.rarity}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+updateCollectionGrid();
+document.getElementById('caught-num').textContent = caught.size;
+
+function toggleCollection() {
+  const modal = document.getElementById('collection-modal');
+  modal.classList.toggle('open');
+}
+
+// ========================================================
+// PHYSICS / MOVEMENT
+// ========================================================
+const clock = new THREE.Clock();
+
+function updatePlayer(dt) {
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+  const right   = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+
+  const moveDir = new THREE.Vector3();
+  if(keys['KeyW']) moveDir.addScaledVector(forward, 1);
+  if(keys['KeyS']) moveDir.addScaledVector(forward, -1);
+  if(keys['KeyA']) moveDir.addScaledVector(right, -1);
+  if(keys['KeyD']) moveDir.addScaledVector(right, 1);
+  if(moveDir.lengthSq() > 0) moveDir.normalize();
+
+  // Sprint
+  const speed = keys['ShiftLeft'] ? PLAYER_SPEED * 2 : PLAYER_SPEED;
+  playerVel.x = moveDir.x * speed;
+  playerVel.z = moveDir.z * speed;
+
+  // Gravity
+  playerVel.y -= GRAVITY * dt;
+
+  camera.position.x += playerVel.x * dt;
+  camera.position.z += playerVel.z * dt;
+  camera.position.y += playerVel.y * dt;
+
+  // Terrain collision
+  const terrainY = getTerrainHeightAt(camera.position.x, camera.position.z);
+  const floorY = Math.max(terrainY, -1.5) + PLAYER_HEIGHT;
+
+  // Block collision (simple AABB top check)
+  let blockFloor = -Infinity;
+  for(const [, mesh] of placedBlocks) {
+    const bx = mesh.position.x, by = mesh.position.y, bz = mesh.position.z;
+    if(Math.abs(camera.position.x - bx) < BLOCK_SIZE*0.6 &&
+       Math.abs(camera.position.z - bz) < BLOCK_SIZE*0.6) {
+      const top = by + BLOCK_SIZE/2;
+      if(top > blockFloor && camera.position.y - PLAYER_HEIGHT < top + 0.2) {
+        blockFloor = top;
+      }
+    }
+  }
+
+  const effectiveFloor = Math.max(floorY, blockFloor === -Infinity ? -Infinity : blockFloor + PLAYER_HEIGHT);
+
+  if(camera.position.y < effectiveFloor) {
+    camera.position.y = effectiveFloor;
+    playerVel.y = 0;
+    onGround = true;
+  } else {
+    onGround = false;
+  }
+
+  // Jump
+  if(keys['Space'] && onGround) {
+    playerVel.y = 8;
+  }
+
+  // World boundary
+  const half = WORLD_SIZE/2 - 5;
+  camera.position.x = Math.max(-half, Math.min(half, camera.position.x));
+  camera.position.z = Math.max(-half, Math.min(half, camera.position.z));
+
+  // Apply yaw/pitch
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = yaw;
+  camera.rotation.x = pitch;
+}
+
+// Heightmap from terrain vertices - efficient lookup
+function getTerrainHeightAt(x, z) {
+  // Direct noise lookup
+  return getHeight(x, z);
+}
+
+// ========================================================
+// GHOST BLOCK UPDATE
+// ========================================================
+function updateGhostBlock() {
+  if(!buildMode) { ghostBlock.visible = false; return; }
+  const hit = getBuildTarget();
+  if(!hit) { ghostBlock.visible = false; return; }
+  ghostBlock.visible = true;
+  const p = hit.point.clone().addScaledVector(hit.face.normal, BLOCK_SIZE*0.6);
+  ghostBlock.position.set(
+    Math.round(p.x/BLOCK_SIZE)*BLOCK_SIZE,
+    Math.round(p.y/BLOCK_SIZE)*BLOCK_SIZE,
+    Math.round(p.z/BLOCK_SIZE)*BLOCK_SIZE
+  );
+}
+
+// ========================================================
+// CHARACTER ANIMATIONS
+// ========================================================
+function animateChars(t) {
+  for(const g of charMeshes) {
+    if(g.userData.caught) continue;
+    const bounce = Math.sin(t * 2 + g.userData.bounceOffset) * 0.12;
+    g.position.y = g.userData.baseY + bounce;
+    g.rotation.y = t * 0.8 + g.userData.bounceOffset;
+  }
+}
+
+// Water shimmer
+let waterTime = 0;
+function animateWater(dt) {
+  waterTime += dt;
+  waterMat.color.setHSL(0.58, 0.6, 0.5 + Math.sin(waterTime*0.5)*0.04);
+}
+
+// ========================================================
+// GAME LOOP
+// ========================================================
+let compassTimer = 0;
+let nearbyTimer  = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t  = clock.getElapsedTime();
+
+  if(locked) {
+    updatePlayer(dt);
+    updateGhostBlock();
+  }
+
+  animateChars(t);
+  animateWater(dt);
+
+  compassTimer -= dt;
+  if(compassTimer <= 0) { compassTimer = 0.25; updateCompass(); }
+
+  nearbyTimer -= dt;
+  if(nearbyTimer <= 0) { nearbyTimer = 0.15; checkNearbyChars(); }
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+animate();
 </script>
 </body>
 </html>

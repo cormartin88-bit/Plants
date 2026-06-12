@@ -1087,9 +1087,7 @@ function makeAnimeChar(data,x,z){
   const eyePositions=[-0.17,0.17];
   eyePositions.forEach(ex=>{
     // Eye white
-    const ew=new THREE.Mesh(new THREE.EllipseCurve ? // fallback
-      new THREE.SphereGeometry(0.13,10,10) : new THREE.SphereGeometry(0.13,10,10),
-      whiteM);
+    const ew=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,10),whiteM);
     ew.scale.set(1,1.25,0.4);ew.position.set(ex,1.3,0.38);g.add(ew);
     // Iris — big and colorful
     const irisC=new THREE.Color().setHSL(Math.random(),0.8,0.45);
@@ -1124,8 +1122,7 @@ function makeAnimeChar(data,x,z){
   bangs.scale.set(1,0.65,0.7);bangs.position.set(0,1.58,0.08);g.add(bangs);
   // Side hair
   [-0.32,0.32].forEach(hx=>{
-    const sideH=new THREE.Mesh(new THREE.CapsuleGeometry ?
-      new THREE.SphereGeometry(0.18,8,8) : new THREE.SphereGeometry(0.18,8,8),hairM);
+    const sideH=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,8),hairM);
     sideH.scale.set(0.7,1.4,0.6);sideH.position.set(hx,1.1,0.05);g.add(sideH);
   });
   // Ahoge (signature anime hair strand)
@@ -1137,9 +1134,7 @@ function makeAnimeChar(data,x,z){
 
   // Arms
   [-0.42,0.42].forEach(ax=>{
-    const arm=new THREE.Mesh(new THREE.CapsuleGeometry ?
-      new THREE.CylinderGeometry(0.07,0.07,0.45,7) :
-      new THREE.CylinderGeometry(0.07,0.07,0.45,7),mat);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.45,7),mat);
     arm.position.set(ax,0.55,0);arm.rotation.z=ax>0?0.4:-0.4;arm.castShadow=true;g.add(arm);
     // Tiny hand
     const hand=new THREE.Mesh(new THREE.SphereGeometry(0.08,7,7),mat);

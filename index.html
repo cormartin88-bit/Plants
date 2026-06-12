@@ -1408,9 +1408,8 @@ function enterFallback(){
 }
 
 document.getElementById('startBtn').addEventListener('click', tryEnter);
-document.getElementById('blocker').addEventListener('click', e=>{
-  if(e.target===document.getElementById('startBtn'))return; // handled above
-});
+// Auto-start
+enterFallback();
 
 // ============================================================
 // PLAYER PHYSICS

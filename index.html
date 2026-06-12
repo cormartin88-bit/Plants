@@ -5,307 +5,332 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kawaii World — Catch & Build</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
-canvas { display: block; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { overflow:hidden; background:#000; font-family:'Segoe UI',sans-serif; }
+canvas { display:block; }
 
 #blocker {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 100; color: #fff; text-align: center;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.82);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  z-index:100; color:#fff; text-align:center; padding:2rem;
 }
-#blocker h1 { font-size: 3rem; color: #ffb6c1; text-shadow: 0 0 20px #ff69b4; margin-bottom: 1rem; }
-#blocker p { font-size: 1.1rem; color: #ffd6e8; margin: 0.4rem 0; max-width: 500px; }
+#blocker h1 { font-size:2.8rem; color:#ffb6c1; text-shadow:0 0 20px #ff69b4; margin-bottom:1rem; }
+#blocker .controls {
+  background:rgba(255,105,180,0.1); border:1px solid #ff69b4;
+  border-radius:16px; padding:1.2rem 2rem; margin:1rem 0;
+  color:#ffd6e8; font-size:0.92rem; line-height:2;
+  text-align:left; display:grid; grid-template-columns:1fr 1fr; gap:0 2rem;
+}
+#blocker .controls b { color:#ff69b4; }
 #startBtn {
-  margin-top: 2rem; padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, #ff69b4, #da70d6);
-  border: none; border-radius: 50px; color: #fff;
-  font-size: 1.3rem; cursor: pointer;
-  box-shadow: 0 0 30px #ff69b4;
-  transition: transform 0.15s;
+  margin-top:1.5rem; padding:0.9rem 2.5rem;
+  background:linear-gradient(135deg,#ff69b4,#da70d6);
+  border:none; border-radius:50px; color:#fff;
+  font-size:1.2rem; cursor:pointer; box-shadow:0 0 30px #ff69b4;
+  transition:transform 0.15s;
 }
-#startBtn:hover { transform: scale(1.05); }
+#startBtn:hover { transform:scale(1.05); }
 
 /* HUD */
-#hud {
-  position: fixed; inset: 0; pointer-events: none; z-index: 10;
-}
-#crosshair {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  width: 24px; height: 24px;
-}
-#crosshair::before, #crosshair::after {
-  content: ''; position: absolute; background: rgba(255,255,255,0.8);
-  border-radius: 2px;
-}
-#crosshair::before { width: 2px; height: 24px; left: 11px; top: 0; }
-#crosshair::after  { width: 24px; height: 2px; top: 11px; left: 0; }
+#hud { position:fixed; inset:0; pointer-events:none; z-index:10; }
 
-#compass-wrap {
-  position: absolute; bottom: 20px; right: 20px;
-  pointer-events: none;
+#crosshair {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:20px; height:20px;
 }
+#crosshair::before,#crosshair::after {
+  content:''; position:absolute; background:rgba(255,255,255,0.9); border-radius:1px;
+}
+#crosshair::before { width:2px; height:20px; left:9px; top:0; }
+#crosshair::after  { width:20px; height:2px; top:9px; left:0; }
+
+/* Compass */
+#compass-wrap { position:absolute; bottom:16px; right:16px; }
 #compass-bg {
-  width: 140px; height: 140px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(20,0,40,0.85) 60%, rgba(255,105,180,0.3));
-  border: 3px solid #ff69b4;
-  box-shadow: 0 0 20px rgba(255,105,180,0.5);
-  position: relative; display: flex; align-items: center; justify-content: center;
+  width:130px; height:130px; border-radius:50%;
+  background:radial-gradient(circle,rgba(15,0,30,0.88) 60%,rgba(255,105,180,0.2));
+  border:2.5px solid #ff69b4;
+  box-shadow:0 0 18px rgba(255,105,180,0.45);
+  position:relative; display:flex; align-items:center; justify-content:center;
 }
-#compass-ring {
-  width: 120px; height: 120px; border-radius: 50%;
-  position: absolute;
-  border: 2px dashed rgba(255,182,193,0.4);
+.compass-dir {
+  position:absolute; color:#ff69b4; font-size:0.6rem; font-weight:bold;
+  text-shadow:0 0 6px #ff69b4;
 }
 #compass-needle {
-  position: absolute; width: 4px; height: 50px;
-  background: linear-gradient(to bottom, #ff1493 50%, rgba(255,182,193,0.3) 50%);
-  border-radius: 3px;
-  transform-origin: bottom center;
-  bottom: 50%; left: calc(50% - 2px);
-  transition: transform 0.1s;
+  position:absolute; width:4px; height:46px;
+  background:linear-gradient(to bottom,#ff1493 50%,rgba(200,180,220,0.3) 50%);
+  border-radius:3px; transform-origin:bottom center;
+  bottom:50%; left:calc(50% - 2px);
 }
 #temp-bar {
-  margin-top: 8px; height: 14px; border-radius: 7px;
-  background: linear-gradient(to right, #4fc3f7, #fff, #ff5722);
-  border: 2px solid rgba(255,255,255,0.3);
-  position: relative; overflow: hidden;
+  margin-top:6px; height:12px; border-radius:6px;
+  background:linear-gradient(to right,#4fc3f7,#a5d6a7,#ffcc02,#ff5722);
+  border:1.5px solid rgba(255,255,255,0.25); position:relative;
 }
 #temp-indicator {
-  position: absolute; top: 0; width: 6px; height: 100%;
-  background: #fff; border-radius: 3px;
-  box-shadow: 0 0 8px #fff;
-  transition: left 0.2s;
+  position:absolute; top:-1px; width:6px; height:14px;
+  background:#fff; border-radius:3px; box-shadow:0 0 6px #fff;
+  transition:left 0.2s;
 }
-#compass-label {
-  color: #ffb6c1; font-size: 0.7rem; text-align: center; margin-top: 4px;
-  text-shadow: 0 0 8px #ff69b4;
-}
+#compass-label { color:#ffb6c1; font-size:0.68rem; text-align:center; margin-top:3px; text-shadow:0 0 6px #ff69b4; }
 
-#collection-btn {
-  position: absolute; top: 16px; right: 16px;
-  background: linear-gradient(135deg, #ff69b4, #da70d6);
-  border: none; border-radius: 50px; color: #fff;
-  padding: 0.5rem 1.2rem; font-size: 0.9rem;
-  cursor: pointer; pointer-events: all;
-  box-shadow: 0 0 15px rgba(255,105,180,0.5);
+/* Top bar */
+#topbar {
+  position:absolute; top:12px; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; align-items:center;
 }
-#collection-btn:hover { filter: brightness(1.1); }
-
 #caught-count {
-  position: absolute; top: 16px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20,0,40,0.8); border: 2px solid #ff69b4;
-  border-radius: 20px; padding: 0.4rem 1rem;
-  color: #ffb6c1; font-size: 0.9rem;
-  text-shadow: 0 0 8px #ff69b4;
+  background:rgba(15,0,30,0.85); border:2px solid #ff69b4; border-radius:20px;
+  padding:0.35rem 1rem; color:#ffb6c1; font-size:0.88rem; text-shadow:0 0 6px #ff69b4;
 }
+#collection-btn {
+  background:linear-gradient(135deg,#ff69b4,#da70d6); border:none; border-radius:20px;
+  padding:0.35rem 1rem; color:#fff; font-size:0.88rem; cursor:pointer; pointer-events:all;
+  box-shadow:0 0 12px rgba(255,105,180,0.4);
+}
+#collection-btn:hover { filter:brightness(1.1); }
 
+/* Interact prompt */
 #interact-prompt {
-  position: absolute; bottom: 30%; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20,0,40,0.9); border: 2px solid #ff69b4;
-  border-radius: 20px; padding: 0.6rem 1.5rem;
-  color: #fff; font-size: 1rem;
-  text-align: center; max-width: 320px;
-  display: none;
+  position:absolute; bottom:28%; left:50%; transform:translateX(-50%);
+  background:rgba(15,0,30,0.92); border:2px solid #ff69b4; border-radius:16px;
+  padding:0.55rem 1.4rem; color:#fff; font-size:0.95rem; text-align:center;
+  max-width:340px; display:none;
+}
+#flee-bar-wrap {
+  position:absolute; bottom:calc(28% + 56px); left:50%; transform:translateX(-50%);
+  width:200px; display:none;
+}
+#flee-bar-bg {
+  width:100%; height:10px; background:rgba(0,0,0,0.5); border-radius:5px;
+  border:1px solid #ff69b4;
+}
+#flee-bar-fill {
+  height:100%; background:linear-gradient(to right,#ff69b4,#ff1493);
+  border-radius:5px; transition:width 0.1s;
+}
+#flee-label { color:#ffb6c1; font-size:0.7rem; text-align:center; margin-bottom:2px; }
+
+/* Build HUD */
+#build-hud {
+  position:absolute; bottom:16px; left:16px;
+  background:rgba(15,0,30,0.85); border:2px solid #b388ff; border-radius:12px;
+  padding:0.5rem 0.8rem; color:#e1bee7; font-size:0.78rem; line-height:1.7;
+}
+#build-hud b { color:#ff69b4; }
+#mode-badge {
+  position:absolute; top:56px; left:50%; transform:translateX(-50%);
+  background:rgba(15,0,30,0.85); border:2px solid #b388ff; border-radius:20px;
+  padding:0.28rem 1rem; color:#ce93d8; font-size:0.82rem; display:none;
 }
 
-#build-indicator {
-  position: absolute; bottom: 20px; left: 20px;
-  background: rgba(20,0,40,0.8); border: 2px solid #b388ff;
-  border-radius: 12px; padding: 0.5rem 1rem;
-  color: #e1bee7; font-size: 0.8rem;
+/* Block palette */
+#palette-wrap {
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+  display:none; flex-direction:column; align-items:center; gap:4px;
 }
-#build-indicator span { color: #ff69b4; font-weight: bold; }
-
-#mode-label {
-  position: absolute; top: 60px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(20,0,40,0.8); border: 2px solid #b388ff;
-  border-radius: 20px; padding: 0.3rem 1rem;
-  color: #ce93d8; font-size: 0.85rem; display: none;
+#palette-wrap.visible { display:flex; }
+#palette-row {
+  display:flex; gap:6px;
+  background:rgba(15,0,30,0.9); border:2px solid #b388ff; border-radius:14px;
+  padding:7px 10px;
+}
+.pal-block {
+  width:32px; height:32px; border-radius:6px;
+  border:3px solid rgba(255,255,255,0.15); position:relative;
+}
+.pal-block.sel { border-color:#fff; box-shadow:0 0 8px #fff; }
+.pal-key {
+  position:absolute; bottom:1px; right:2px;
+  font-size:0.55rem; color:rgba(255,255,255,0.7); font-weight:bold;
 }
 
 /* Collection modal */
-#collection-modal {
-  display: none; position: fixed; inset: 0; z-index: 50;
-  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-  align-items: center; justify-content: center;
+#coll-modal {
+  display:none; position:fixed; inset:0; z-index:50;
+  background:rgba(0,0,0,0.82); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center;
 }
-#collection-modal.open { display: flex; }
-#collection-inner {
-  background: linear-gradient(135deg, #1a0033, #0d001a);
-  border: 3px solid #ff69b4; border-radius: 24px;
-  width: 90vw; max-width: 900px; max-height: 85vh;
-  overflow: hidden; display: flex; flex-direction: column;
-  box-shadow: 0 0 60px rgba(255,105,180,0.4);
+#coll-modal.open { display:flex; }
+#coll-inner {
+  background:linear-gradient(135deg,#1a0033,#0d001a);
+  border:3px solid #ff69b4; border-radius:22px;
+  width:90vw; max-width:880px; max-height:84vh;
+  overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:0 0 60px rgba(255,105,180,0.35);
 }
-#collection-header {
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #ff69b4, #da70d6);
-  display: flex; align-items: center; justify-content: space-between;
+#coll-header {
+  padding:0.9rem 1.4rem;
+  background:linear-gradient(135deg,#ff69b4,#da70d6);
+  display:flex; align-items:center; justify-content:space-between;
 }
-#collection-header h2 { color: #fff; font-size: 1.4rem; }
-#close-modal {
-  background: rgba(255,255,255,0.2); border: none; border-radius: 50%;
-  width: 36px; height: 36px; color: #fff; font-size: 1.2rem;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+#coll-header h2 { color:#fff; font-size:1.3rem; }
+#close-coll {
+  background:rgba(255,255,255,0.2); border:none; border-radius:50%;
+  width:34px; height:34px; color:#fff; font-size:1.1rem; cursor:pointer;
 }
-#collection-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px; padding: 1rem; overflow-y: auto; flex: 1;
+#coll-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  gap:10px; padding:1rem; overflow-y:auto; flex:1;
 }
 .char-card {
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,105,180,0.3);
-  border-radius: 16px; padding: 0.8rem 0.5rem;
-  text-align: center; cursor: default;
-  transition: border-color 0.2s;
+  background:rgba(255,255,255,0.04); border:2px solid rgba(255,105,180,0.25);
+  border-radius:14px; padding:0.7rem 0.4rem; text-align:center; cursor:default;
 }
-.char-card.caught { border-color: #ff69b4; background: rgba(255,105,180,0.1); }
-.char-card.caught:hover { border-color: #ff1493; }
-.char-icon {
-  width: 52px; height: 52px; border-radius: 50%;
-  margin: 0 auto 0.5rem; display: flex; align-items: center;
-  justify-content: center; font-size: 1.8rem;
-  filter: grayscale(1) brightness(0.5);
-}
-.caught .char-icon { filter: none; }
-.char-name { color: #ffd6e8; font-size: 0.75rem; font-weight: bold; }
-.char-rarity { font-size: 0.65rem; margin-top: 2px; }
-.rarity-common    { color: #aaa; }
-.rarity-uncommon  { color: #69f0ae; }
-.rarity-rare      { color: #64b5f6; }
-.rarity-legendary { color: #ffd54f; }
-.char-card:not(.caught) .char-name { color: #555; }
+.char-card.caught { border-color:#ff69b4; background:rgba(255,105,180,0.08); }
+.char-icon { font-size:1.9rem; margin-bottom:0.3rem; filter:grayscale(1) brightness(0.4); }
+.caught .char-icon { filter:none; }
+.char-name { color:#ffd6e8; font-size:0.72rem; font-weight:bold; }
+.char-rarity { font-size:0.62rem; margin-top:2px; }
+.rarity-common    { color:#aaa; }
+.rarity-uncommon  { color:#69f0ae; }
+.rarity-rare      { color:#64b5f6; }
+.rarity-legendary { color:#ffd54f; }
+.char-card:not(.caught) .char-name { color:#444; }
 
-/* Dialogue modal */
-#dialogue-modal {
-  display: none; position: fixed; inset: 0; z-index: 60;
-  align-items: flex-end; justify-content: center;
-  padding-bottom: 80px;
+/* Dialogue */
+#dlg-modal {
+  display:none; position:fixed; inset:0; z-index:60;
+  align-items:flex-end; justify-content:center; padding-bottom:60px;
 }
-#dialogue-modal.open { display: flex; }
-#dialogue-box {
-  background: linear-gradient(135deg, #1a0033, #0d001a);
-  border: 3px solid #ff69b4; border-radius: 20px;
-  width: 90vw; max-width: 600px; padding: 1.5rem;
-  box-shadow: 0 0 40px rgba(255,105,180,0.5);
-  animation: slideUp 0.3s ease;
+#dlg-modal.open { display:flex; }
+#dlg-box {
+  background:linear-gradient(135deg,#1a0033,#0d001a);
+  border:3px solid #ff69b4; border-radius:20px;
+  width:90vw; max-width:560px; padding:1.4rem;
+  box-shadow:0 0 40px rgba(255,105,180,0.5);
+  animation:slideUp 0.25s ease;
 }
-@keyframes slideUp {
-  from { transform: translateY(60px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-#dialogue-char-name {
-  color: #ff69b4; font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;
-}
-#dialogue-text { color: #ffd6e8; font-size: 1rem; line-height: 1.6; margin-bottom: 1rem; }
-#dialogue-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
-.dlg-btn {
-  padding: 0.5rem 1.2rem; border-radius: 50px; border: none;
-  font-size: 0.9rem; cursor: pointer; transition: transform 0.1s;
-}
-.dlg-btn:hover { transform: scale(1.05); }
-#dlg-catch { background: linear-gradient(135deg, #ff69b4, #da70d6); color: #fff; }
-#dlg-clue  { background: linear-gradient(135deg, #64b5f6, #7c4dff); color: #fff; }
-#dlg-close { background: rgba(255,255,255,0.1); color: #aaa; }
+@keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+#dlg-name { color:#ff69b4; font-size:1.15rem; font-weight:bold; margin-bottom:0.4rem; }
+#dlg-text { color:#ffd6e8; font-size:0.95rem; line-height:1.6; margin-bottom:0.8rem; }
+#dlg-keys { color:#ce93d8; font-size:0.82rem; }
+#dlg-keys span { color:#ff69b4; font-weight:bold; }
+
+/* Catch flash */
 #catch-flash {
-  position: fixed; inset: 0; background: rgba(255,182,193,0.6);
-  pointer-events: none; z-index: 70; display: none;
-  align-items: center; justify-content: center;
+  position:fixed; inset:0; background:rgba(255,182,193,0.55);
+  pointer-events:none; z-index:70; display:none;
+  align-items:center; justify-content:center;
 }
-#catch-flash.show { display: flex; animation: flashIn 0.6s ease forwards; }
-@keyframes flashIn {
-  0%   { opacity: 0; }
-  30%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-#catch-flash-text { font-size: 3rem; color: #fff; text-shadow: 0 0 30px #ff69b4; text-align: center; }
+#catch-flash.show { display:flex; animation:flashOut 0.9s ease forwards; }
+@keyframes flashOut { 0%{opacity:0} 25%{opacity:1} 100%{opacity:0} }
+#catch-flash-text { font-size:2.6rem; color:#fff; text-shadow:0 0 25px #ff69b4; text-align:center; line-height:1.5; }
 
-#block-palette {
-  position: absolute; bottom: 20px; left: 50%;
-  transform: translateX(-50%);
-  display: none; gap: 8px;
-  background: rgba(20,0,40,0.9); border: 2px solid #b388ff;
-  border-radius: 16px; padding: 8px 12px;
+/* Fact modal */
+#fact-modal {
+  display:none; position:fixed; inset:0; z-index:65;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);
 }
-#block-palette.visible { display: flex; }
-.palette-block {
-  width: 36px; height: 36px; border-radius: 8px;
-  cursor: pointer; border: 3px solid transparent;
-  transition: border-color 0.15s;
+#fact-modal.open { display:flex; }
+#fact-box {
+  background:linear-gradient(135deg,#1a0033,#0d001a);
+  border:3px solid #ffd54f; border-radius:22px;
+  width:88vw; max-width:500px; padding:1.6rem;
+  box-shadow:0 0 50px rgba(255,213,79,0.4);
+  animation:slideUp 0.25s ease; text-align:center;
 }
-.palette-block.selected { border-color: #fff; }
+#fact-emoji { font-size:3rem; margin-bottom:0.5rem; }
+#fact-name  { color:#ffd54f; font-size:1.3rem; font-weight:bold; margin-bottom:0.6rem; }
+#fact-power { background:rgba(255,213,79,0.1); border:1px solid #ffd54f; border-radius:12px;
+              padding:0.6rem 1rem; color:#fff9c4; font-size:0.9rem; margin:0.6rem 0; }
+#fact-text  { color:#ffd6e8; font-size:0.88rem; line-height:1.6; margin-bottom:1rem; }
+#fact-close { background:linear-gradient(135deg,#ffd54f,#ffb300); border:none; border-radius:50px;
+              padding:0.5rem 1.5rem; color:#1a0033; font-size:0.9rem; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<!-- Start screen -->
 <div id="blocker">
   <h1>🌸 Kawaii World 🌸</h1>
-  <p>Explore a beautiful 3D world, catch 100 Kawaii characters, and build your dream home!</p>
-  <p style="margin-top:1rem;color:#ce93d8;font-size:0.95rem;">
-    <b>WASD</b> move &nbsp;|&nbsp; <b>Mouse</b> look &nbsp;|&nbsp; <b>E</b> interact &nbsp;|&nbsp;
-    <b>B</b> build mode &nbsp;|&nbsp; <b>Click</b> place/remove block
-  </p>
+  <div class="controls">
+    <div><b>WASD</b> — Move</div>
+    <div><b>Mouse</b> — Look</div>
+    <div><b>Space</b> — Jump</div>
+    <div><b>Shift</b> — Sprint</div>
+    <div><b>E</b> — Interact / Catch</div>
+    <div><b>V</b> — Ask for clue</div>
+    <div><b>Q / Esc</b> — Close dialogue</div>
+    <div><b>B</b> — Toggle build mode</div>
+    <div><b>1–8</b> — Select block color</div>
+    <div><b>F</b> — Place block</div>
+    <div><b>R</b> — Remove block</div>
+    <div><b>Tab</b> — Collection</div>
+  </div>
+  <p style="color:#ce93d8;font-size:0.88rem;">Characters FLEE when you get close — chase them down!</p>
   <button id="startBtn">Enter the World ✨</button>
 </div>
 
-<!-- HUD -->
 <div id="hud">
   <div id="crosshair"></div>
 
-  <div id="caught-count">🌸 <span id="caught-num">0</span> / 100 Caught</div>
-  <button id="collection-btn" onclick="toggleCollection()">📖 Collection</button>
+  <div id="topbar">
+    <div id="caught-count">🌸 <span id="caught-num">0</span> / 100</div>
+    <button id="collection-btn" onclick="toggleCollection()">📖 [Tab]</button>
+  </div>
 
   <div id="compass-wrap">
     <div id="compass-bg">
-      <div id="compass-ring"></div>
+      <div class="compass-dir" style="top:7px;left:50%;transform:translateX(-50%)">N</div>
+      <div class="compass-dir" style="bottom:7px;left:50%;transform:translateX(-50%)">S</div>
+      <div class="compass-dir" style="left:7px;top:50%;transform:translateY(-50%)">W</div>
+      <div class="compass-dir" style="right:7px;top:50%;transform:translateY(-50%)">E</div>
       <div id="compass-needle"></div>
-      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;top:8px;">N</div>
-      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;bottom:8px;">S</div>
-      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;left:8px;">W</div>
-      <div style="color:#ff69b4;font-size:0.6rem;position:absolute;right:8px;">E</div>
     </div>
     <div id="temp-bar"><div id="temp-indicator"></div></div>
-    <div id="compass-label">⬆ Nearest Kawaii</div>
+    <div id="compass-label">Nearest Kawaii ↑</div>
   </div>
 
+  <div id="flee-bar-wrap">
+    <div id="flee-label">Chase proximity</div>
+    <div id="flee-bar-bg"><div id="flee-bar-fill" style="width:0%"></div></div>
+  </div>
   <div id="interact-prompt"></div>
-  <div id="build-indicator"><span id="mode-text">Explore</span> mode — B to toggle build</div>
-  <div id="mode-label">🏗 Build Mode — Click to place | Right-click to remove</div>
 
-  <div id="block-palette">
-    <!-- filled by JS -->
+  <div id="build-hud">
+    Mode: <b id="mode-text">Explore</b><br>
+    <b>[B]</b> toggle build &nbsp; <b>[1-8]</b> color<br>
+    <b>[F]</b> place &nbsp; <b>[R]</b> remove
+  </div>
+  <div id="mode-badge">🏗 Build Mode</div>
+
+  <div id="palette-wrap">
+    <div id="palette-row"></div>
   </div>
 </div>
 
-<!-- Collection modal -->
-<div id="collection-modal">
-  <div id="collection-inner">
-    <div id="collection-header">
+<!-- Collection -->
+<div id="coll-modal">
+  <div id="coll-inner">
+    <div id="coll-header">
       <h2>🌸 Kawaii Collection</h2>
-      <button id="close-modal" onclick="toggleCollection()">✕</button>
+      <button id="close-coll" onclick="toggleCollection()">✕</button>
     </div>
-    <div id="collection-grid"></div>
+    <div id="coll-grid"></div>
   </div>
 </div>
 
-<!-- Dialogue modal -->
-<div id="dialogue-modal">
-  <div id="dialogue-box">
-    <div id="dialogue-char-name"></div>
-    <div id="dialogue-text"></div>
-    <div id="dialogue-actions">
-      <button class="dlg-btn" id="dlg-catch" onclick="catchCharacter()">Catch! 🌸</button>
-      <button class="dlg-btn" id="dlg-clue"  onclick="askClue()">Give me a clue 🔍</button>
-      <button class="dlg-btn" id="dlg-close" onclick="closeDialogue()">Bye~ 👋</button>
-    </div>
+<!-- Dialogue -->
+<div id="dlg-modal">
+  <div id="dlg-box">
+    <div id="dlg-name"></div>
+    <div id="dlg-text"></div>
+    <div id="dlg-keys"><span>[E]</span> Catch &nbsp; <span>[V]</span> Clue &nbsp; <span>[Q]</span> Leave</div>
+  </div>
+</div>
+
+<!-- Fact card after catch -->
+<div id="fact-modal">
+  <div id="fact-box">
+    <div id="fact-emoji"></div>
+    <div id="fact-name"></div>
+    <div id="fact-power"></div>
+    <div id="fact-text"></div>
+    <button id="fact-close" onclick="closeFact()">Wonderful! [Q]</button>
   </div>
 </div>
 
@@ -314,883 +339,1267 @@ canvas { display: block; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
-// ========================================================
-// KAWAII CHARACTERS (100)
-// ========================================================
-const KAWAII_CHARS = [
-  // Common (40)
-  { id:0,  name:'Mochi',    emoji:'🍡', color:'#ffb6c1', rarity:'common',    intro:'Kyaa~ you found me!',           clue:'Look near the big oak tree to the north~' },
-  { id:1,  name:'Pudding',  emoji:'🍮', color:'#ffd59e', rarity:'common',    intro:'Pudding-chan is here!',         clue:'My friend Dango loves water~ try the river!' },
-  { id:2,  name:'Sakura',   emoji:'🌸', color:'#ffb7d5', rarity:'common',    intro:'The petals led you to me~',     clue:'Hoshi hides where stars seem to fall at dusk.' },
-  { id:3,  name:'Hoshi',    emoji:'⭐', color:'#fff9c4', rarity:'common',    intro:'A star has landed! That\'s me~',clue:'Niko is always smiling near flowers.' },
-  { id:4,  name:'Niko',     emoji:'😊', color:'#c8e6c9', rarity:'common',    intro:'Niko niko~! Hello friend!',    clue:'Pipi likes to bounce around on hills.' },
-  { id:5,  name:'Pipi',     emoji:'🐣', color:'#fff9c4', rarity:'common',    intro:'Pipi! Pipi! Found me!',        clue:'Mimi is very shy — check behind tall rocks.' },
-  { id:6,  name:'Mimi',     emoji:'🐭', color:'#f8bbd0', rarity:'common',    intro:'Eek! You saw me?',             clue:'Koko dances on flat open plains!' },
-  { id:7,  name:'Koko',     emoji:'🥥', color:'#d7ccc8', rarity:'common',    intro:'Koko koko~!',                  clue:'Lulu likes to sit on top of little hills.' },
-  { id:8,  name:'Lulu',     emoji:'🌼', color:'#fff176', rarity:'common',    intro:'Lulu was waiting for you~',    clue:'Boba can be found near clusters of flowers.' },
-  { id:9,  name:'Boba',     emoji:'🧋', color:'#a1887f', rarity:'common',    intro:'I taste like adventure~',      clue:'Dango sticks close to water.' },
-  { id:10, name:'Dango',    emoji:'🍡', color:'#f48fb1', rarity:'common',    intro:'Three Dangos, one heart~',     clue:'Taiyaki loves sunny open spots.' },
-  { id:11, name:'Taiyaki',  emoji:'🐟', color:'#ffcc80', rarity:'common',    intro:'I\'m a fish… but sweet!',      clue:'Pocky stands tall near straight paths.' },
-  { id:12, name:'Pocky',    emoji:'🍫', color:'#6d4c41', rarity:'common',    intro:'Chocolate or strawberry?',     clue:'Ramune bubbles near cold streams.' },
-  { id:13, name:'Ramune',   emoji:'🔵', color:'#81d4fa', rarity:'common',    intro:'Fizzy and fun~!',              clue:'Matcha is green like the trees in the grove.' },
-  { id:14, name:'Matcha',   emoji:'🍵', color:'#a5d6a7', rarity:'common',    intro:'Bitter-sweet, just like me.',  clue:'Ichigo loves strawberry-colored sunsets.' },
-  { id:15, name:'Ichigo',   emoji:'🍓', color:'#ef9a9a', rarity:'common',    intro:'Ichigo means strawberry~!',    clue:'Yuzu is bright yellow — look in sunny meadows.' },
-  { id:16, name:'Yuzu',     emoji:'🍋', color:'#fff176', rarity:'common',    intro:'Zesty and warm!',              clue:'Mikan likes to roll down gentle slopes.' },
-  { id:17, name:'Mikan',    emoji:'🍊', color:'#ffb74d', rarity:'common',    intro:'Mikan-chan at your service!',  clue:'Ume prefers shaded places under trees.' },
-  { id:18, name:'Ume',      emoji:'🌺', color:'#f06292', rarity:'common',    intro:'Plum blossoms in spring~',     clue:'Fuji is tall and proud — look uphill.' },
-  { id:19, name:'Fuji',     emoji:'🗻', color:'#b0bec5', rarity:'common',    intro:'The summit welcomes you!',     clue:'Panda likes bamboo-green areas.' },
-  { id:20, name:'Panda',    emoji:'🐼', color:'#eceff1', rarity:'common',    intro:'Panda panda~!',                clue:'Usagi hops! Look in open grassy areas.' },
-  { id:21, name:'Usagi',    emoji:'🐰', color:'#f8bbd0', rarity:'common',    intro:'Hop hop hop~!',                clue:'Neko stretches out on warm flat stones.' },
-  { id:22, name:'Neko',     emoji:'🐱', color:'#ffecb3', rarity:'common',    intro:'Nyan~! Pet me, please!',       clue:'Kuma snoozes near dense tree groups.' },
-  { id:23, name:'Kuma',     emoji:'🐻', color:'#795548', rarity:'common',    intro:'Kuma bear says hello~',        clue:'Tori flies — watch the highest points.' },
-  { id:24, name:'Tori',     emoji:'🐦', color:'#81d4fa', rarity:'common',    intro:'Tweet tweet!',                 clue:'Hana blooms wherever flowers gather.' },
-  { id:25, name:'Hana',     emoji:'💐', color:'#f48fb1', rarity:'common',    intro:'Fresh and fragrant~',          clue:'Tsuki comes out when the sky looks dark.' },
-  { id:26, name:'Tsuki',    emoji:'🌙', color:'#e1f5fe', rarity:'common',    intro:'The moon guided you here!',    clue:'Hime likes the center of things — try the middle.' },
-  { id:27, name:'Hime',     emoji:'👑', color:'#ffe082', rarity:'common',    intro:'A princess never hides!',      clue:'Yuki loves cold, high-elevation spots.' },
-  { id:28, name:'Yuki',     emoji:'❄️', color:'#e3f2fd', rarity:'common',    intro:'Cold as a snowflake!',         clue:'Sora drifts wherever the view is widest.' },
-  { id:29, name:'Sora',     emoji:'☁️', color:'#bbdefb', rarity:'common',    intro:'Sky and clouds, that\'s me~',  clue:'Aki turns golden — look in golden-lit fields.' },
-  { id:30, name:'Aki',      emoji:'🍂', color:'#ffb74d', rarity:'common',    intro:'Autumn breeze, autumn leaves!', clue:'Natsu blazes in the brightest open areas.' },
-  { id:31, name:'Natsu',    emoji:'☀️', color:'#ffee58', rarity:'common',    intro:'Hot hot summer~!',             clue:'Fuku hides in lucky corners.' },
-  { id:32, name:'Fuku',     emoji:'🍀', color:'#66bb6a', rarity:'common',    intro:'Good luck finding me!',        clue:'Ai hides where things feel the most romantic.' },
-  { id:33, name:'Ai',       emoji:'💖', color:'#f48fb1', rarity:'common',    intro:'Love found you~!',             clue:'Koi swims — check near any water body.' },
-  { id:34, name:'Koi',      emoji:'🐠', color:'#ef5350', rarity:'common',    intro:'Colorful like my scales~',     clue:'Kiri hides in the mist — look through fog.' },
-  { id:35, name:'Kiri',     emoji:'🌫️', color:'#eceff1', rarity:'common',    intro:'Misty and mysterious~',        clue:'Shiro prefers pure white open spaces.' },
-  { id:36, name:'Shiro',    emoji:'⬜', color:'#fafafa', rarity:'common',    intro:'As white as clouds~',          clue:'Kuro lurks in shadowy corners.' },
-  { id:37, name:'Kuro',     emoji:'⬛', color:'#424242', rarity:'common',    intro:'Dark but cute~',               clue:'Aka is bright red — find it in warm zones.' },
-  { id:38, name:'Aka',      emoji:'🔴', color:'#ef5350', rarity:'common',    intro:'Bold and bright!',             clue:'Ao flows blue near water streams.' },
-  { id:39, name:'Ao',       emoji:'🔵', color:'#42a5f5', rarity:'common',    intro:'Blue like the deep sky~',      clue:'Tanuki has a big belly — look near round hills.' },
-  // Uncommon (30)
-  { id:40, name:'Tanuki',   emoji:'🦝', color:'#8d6e63', rarity:'uncommon',  intro:'Pom poko! Found me!',          clue:'Kitsune runs fast — look far north.' },
-  { id:41, name:'Kitsune',  emoji:'🦊', color:'#ff7043', rarity:'uncommon',  intro:'Nine tails, all cute~!',       clue:'Tengu is proud — stands on the highest terrain.' },
-  { id:42, name:'Tengu',    emoji:'👺', color:'#ef5350', rarity:'uncommon',  intro:'My nose is just big-boned.',   clue:'Oni is loud and lives in rocky areas.' },
-  { id:43, name:'Oni',      emoji:'👹', color:'#7b1fa2', rarity:'uncommon',  intro:'RAAAWR... just kidding, kawaii!',clue:'Mermaid stays close to any water body.' },
-  { id:44, name:'Mermaid',  emoji:'🧜', color:'#26c6da', rarity:'uncommon',  intro:'Splash splash~!',              clue:'Fairy dances near sparkly flowers.' },
-  { id:45, name:'Fairy',    emoji:'🧚', color:'#ce93d8', rarity:'uncommon',  intro:'Fairy dust for everyone!',     clue:'Sprite appears at the edge of forests.' },
-  { id:46, name:'Sprite',   emoji:'✨', color:'#fff176', rarity:'uncommon',  intro:'Blink and you\'ll miss me~',   clue:'Pixie hides in very small spaces — tight corners.' },
-  { id:47, name:'Pixie',    emoji:'🌟', color:'#ffee58', rarity:'uncommon',  intro:'Tiny but mighty!',             clue:'Wisp floats at dusk time areas.' },
-  { id:48, name:'Wisp',     emoji:'💙', color:'#81d4fa', rarity:'uncommon',  intro:'Follow the light~',            clue:'Glow brightens the darkest spots.' },
-  { id:49, name:'Glow',     emoji:'🌟', color:'#fff9c4', rarity:'uncommon',  intro:'I light the way~',             clue:'Bloom loves flower patches.' },
-  { id:50, name:'Bloom',    emoji:'🌻', color:'#ffee58', rarity:'uncommon',  intro:'Blossoming with joy~!',        clue:'Petal drifts on the breeze — open areas.' },
-  { id:51, name:'Petal',    emoji:'🌹', color:'#ef9a9a', rarity:'uncommon',  intro:'Delicate like a rose petal.',  clue:'Dewdrop hides near plants in the morning.' },
-  { id:52, name:'Dewdrop',  emoji:'💧', color:'#b3e5fc', rarity:'uncommon',  intro:'Crystal clear and fresh!',     clue:'Rainbow appears where water meets light.' },
-  { id:53, name:'Rainbow',  emoji:'🌈', color:'#ff6b6b', rarity:'uncommon',  intro:'Seven colors, one friend!',    clue:'Starfall drifts where the sky is open.' },
-  { id:54, name:'Starfall', emoji:'🌠', color:'#e1bee7', rarity:'uncommon',  intro:'Catch me before I disappear!', clue:'Moonbeam glows in open moonlit areas.' },
-  { id:55, name:'Moonbeam', emoji:'🌙', color:'#e8eaf6', rarity:'uncommon',  intro:'Silver thread of moonlight~',  clue:'Sunray blazes in the brightest spot you can see.' },
-  { id:56, name:'Sunray',   emoji:'🌞', color:'#ffd54f', rarity:'uncommon',  intro:'Warm and golden~!',            clue:'Cloudpuff floats on the highest ground.' },
-  { id:57, name:'Cloudpuff',emoji:'☁️', color:'#eceff1', rarity:'uncommon',  intro:'Soft as a cloud!',             clue:'Misty hides in low-lying foggy patches.' },
-  { id:58, name:'Misty',    emoji:'🌫️', color:'#cfd8dc', rarity:'uncommon',  intro:'Can you find me in the mist?', clue:'Frosty loves the coldest hillsides.' },
-  { id:59, name:'Frosty',   emoji:'🌨️', color:'#e3f2fd', rarity:'uncommon',  intro:'Cold hands, warm heart~!',     clue:'Coral prefers colors — look for colorful areas.' },
-  { id:60, name:'Coral',    emoji:'🪸', color:'#ff8a65', rarity:'uncommon',  intro:'Pretty as a reef!',            clue:'Pearl is perfect and round — look near spherical rocks.' },
-  { id:61, name:'Pearl',    emoji:'🔮', color:'#f3e5f5', rarity:'uncommon',  intro:'Precious and rare~!',          clue:'Crystal shines where light reflects.' },
-  { id:62, name:'Crystal',  emoji:'💎', color:'#b2ebf2', rarity:'uncommon',  intro:'Clear as glass, cute as pie!', clue:'Jade is green — look in the greenest areas.' },
-  { id:63, name:'Jade',     emoji:'💚', color:'#66bb6a', rarity:'uncommon',  intro:'Ancient and adorable~!',       clue:'Ruby burns bright in red-toned areas.' },
-  { id:64, name:'Ruby',     emoji:'❤️', color:'#ef5350', rarity:'uncommon',  intro:'Ruby-red and rare!',           clue:'Sapphire sparkles in blue-tinged zones.' },
-  { id:65, name:'Sapphire', emoji:'💙', color:'#42a5f5', rarity:'uncommon',  intro:'Deep blue and dreamy~!',       clue:'Topaz glows golden — sunny clearing ahead.' },
-  { id:66, name:'Topaz',    emoji:'💛', color:'#ffd54f', rarity:'uncommon',  intro:'Golden and warm~!',            clue:'Amber is frozen in time — look near still areas.' },
-  { id:67, name:'Amber',    emoji:'🟠', color:'#ffa726', rarity:'uncommon',  intro:'Ancient resin beauty~!',       clue:'Opal changes colors — look in the most colorful spot.' },
-  { id:68, name:'Opal',     emoji:'🌈', color:'#e040fb', rarity:'uncommon',  intro:'Every angle, a new color~!',   clue:'Ivory is elegant — look near tall structures.' },
-  { id:69, name:'Ivory',    emoji:'🤍', color:'#fafafa', rarity:'uncommon',  intro:'Pure and graceful~!',          clue:'Dreamer likes to wander far from home.' },
-  // Rare (20)
-  { id:70, name:'Dreamer',  emoji:'💭', color:'#ce93d8', rarity:'rare',      intro:'Dreams become reality here~',  clue:'Wisher only appears near the tallest point you can find.' },
-  { id:71, name:'Wisher',   emoji:'🌠', color:'#e1bee7', rarity:'rare',      intro:'Make a wish, I\'m here~!',     clue:'Shimmer dances in reflective light.' },
-  { id:72, name:'Shimmer',  emoji:'✨', color:'#fff9c4', rarity:'rare',      intro:'I shimmer, therefore I am~',   clue:'Sparkle is near the most dazzling thing you see.' },
-  { id:73, name:'Sparkle',  emoji:'💫', color:'#ffe082', rarity:'rare',      intro:'Ta-da~! Found me!',            clue:'Twinkle blinks in and out — be patient.' },
-  { id:74, name:'Twinkle',  emoji:'⭐', color:'#fff176', rarity:'rare',      intro:'Twinkle twinkle little star~!',clue:'Glimmer is at the edge of the world — go far.' },
-  { id:75, name:'Glimmer',  emoji:'🌟', color:'#ffee58', rarity:'rare',      intro:'A soft glow in the dark~',     clue:'Radiance lives where the sky meets land.' },
-  { id:76, name:'Radiance', emoji:'☀️', color:'#ffd54f', rarity:'rare',      intro:'I am pure light~!',            clue:'Aurora dances at the very edges of the map.' },
-  { id:77, name:'Aurora',   emoji:'🌌', color:'#7c4dff', rarity:'rare',      intro:'Northern lights, southern heart!',clue:'Celestia is always overhead — look up and out.' },
-  { id:78, name:'Celestia', emoji:'🌠', color:'#e8eaf6', rarity:'rare',      intro:'Star-born and sky-kissed~!',   clue:'Luna rests where moonlight pools.' },
-  { id:79, name:'Luna',     emoji:'🌙', color:'#e1bee7', rarity:'rare',      intro:'Moon maiden at your service~!',clue:'Solara blazes at high noon at the south.' },
-  { id:80, name:'Solara',   emoji:'🌞', color:'#ffd54f', rarity:'rare',      intro:'Sun\'s beloved child~!',       clue:'Nebula drifts where colors blend together.' },
-  { id:81, name:'Nebula',   emoji:'🌌', color:'#7c4dff', rarity:'rare',      intro:'Born from stardust~',          clue:'Cosmos is at the very center of everything.' },
-  { id:82, name:'Cosmos',   emoji:'🌌', color:'#512da8', rarity:'rare',      intro:'The universe, compressed kawaii!',clue:'Stardust scatters — look at the highest altitude.' },
-  { id:83, name:'Stardust', emoji:'✨', color:'#e040fb', rarity:'rare',      intro:'I am what stars leave behind~',clue:'Galaxy swirls far to the east.' },
-  { id:84, name:'Galaxy',   emoji:'🌌', color:'#3f51b5', rarity:'rare',      intro:'A galaxy in your pocket~!',    clue:'Nova explodes with energy — look in open spaces.' },
-  { id:85, name:'Nova',     emoji:'💥', color:'#ff6f00', rarity:'rare',      intro:'Supernova kawaii style~!',     clue:'Comet streaks! Look along straight paths far away.' },
-  { id:86, name:'Comet',    emoji:'☄️', color:'#ff8f00', rarity:'rare',      intro:'Blazing trail of cuteness~!',  clue:'Meteor lands hard — look for the most remote spot.' },
-  { id:87, name:'Meteor',   emoji:'🌠', color:'#ef6c00', rarity:'rare',      intro:'Crash landed, still cute!',    clue:'Eclipse hides where light and dark meet.' },
-  { id:88, name:'Eclipse',  emoji:'🌑', color:'#1a237e', rarity:'rare',      intro:'I block the sun, but I\'m sweet~!',clue:'Solstice marks the turning point — farthest north or south.' },
-  { id:89, name:'Solstice', emoji:'☯️', color:'#4dd0e1', rarity:'rare',      intro:'Balance and beauty~!',         clue:'Seraphim is the rarest of all — explore everywhere.' },
-  // Legendary (10)
-  { id:90, name:'Seraphim', emoji:'👼', color:'#fff9c4', rarity:'legendary', intro:'An angel descended for you~!', clue:'I only appear to those who have caught many others. Keep going!' },
-  { id:91, name:'Ethereal', emoji:'🌫️', color:'#e8eaf6', rarity:'legendary', intro:'Between worlds, between moments~',clue:'Arcana guards ancient knowledge — explore everything.' },
-  { id:92, name:'Arcana',   emoji:'🔮', color:'#7c4dff', rarity:'legendary', intro:'Mystic and magnificent~!',     clue:'Luminary shines where no shadow falls.' },
-  { id:93, name:'Luminary', emoji:'💡', color:'#ffd54f', rarity:'legendary', intro:'The light of all worlds~!',    clue:'Divinity is found in peaceful places.' },
-  { id:94, name:'Divinity', emoji:'✨', color:'#fff9c4', rarity:'legendary', intro:'Divine kawaii perfection~!',   clue:'Omniveil covers everything — search the whole map.' },
-  { id:95, name:'Omniveil', emoji:'🌐', color:'#4fc3f7', rarity:'legendary', intro:'I see all, and I\'m adorable!',clue:'Transcend goes beyond — look at the very edge.' },
-  { id:96, name:'Transcend',emoji:'🦋', color:'#ce93d8', rarity:'legendary', intro:'Beyond limits, beyond cute!',  clue:'Infinity has no end — keep walking and you\'ll find me.' },
-  { id:97, name:'Infinity', emoji:'♾️', color:'#e040fb', rarity:'legendary', intro:'Forever yours~!',             clue:'Eternity waits at the place you least expect.' },
-  { id:98, name:'Eternity', emoji:'⏳', color:'#b39ddb', rarity:'legendary', intro:'Time means nothing to the kawaii~',clue:'Genesis is the beginning — think about where you started.' },
-  { id:99, name:'Genesis',  emoji:'🌱', color:'#a5d6a7', rarity:'legendary', intro:'The first, and the most special~!',clue:'You\'ve found me! You are a true Kawaii Master!' },
+// ============================================================
+// 100 KAWAII CHARACTERS
+// ============================================================
+const CHARS = [
+  // --- COMMON (40) ---
+  {id:0,  name:'Mochi',    emoji:'🍡', color:'#ffb6c1', rarity:'common',
+   intro:'Kyaa~ you found Mochi! I\'m so soft and squishy~!',
+   clue:'Look near the big sakura tree to the north~',
+   fact:'Mochi rice cakes have been eaten in Japan for over 1,000 years!',
+   power:'Softness Aura — heals everyone nearby with cozy feelings.'},
+  {id:1,  name:'Pudding',  emoji:'🍮', color:'#ffd59e', rarity:'common',
+   intro:'Pudding-chan wobbles but never falls~!',
+   clue:'My friend Dango loves water~ try the river!',
+   fact:'In Japan, purin (pudding) is one of the most beloved convenience store desserts!',
+   power:'Wobble Shield — bounces away all negativity.'},
+  {id:2,  name:'Sakura',   emoji:'🌸', color:'#ffb7d5', rarity:'common',
+   intro:'The petals carried me right to you~!',
+   clue:'Hoshi hides where stars seem to fall at dusk.',
+   fact:'Cherry blossoms bloom for only 1–2 weeks each year in Japan!',
+   power:'Petal Storm — summons a whirlwind of cherry blossoms.'},
+  {id:3,  name:'Hoshi',    emoji:'⭐', color:'#fff9c4', rarity:'common',
+   intro:'A star has landed! That\'s me~',
+   clue:'Niko is always smiling near flower patches.',
+   fact:'Stars can live for billions of years — the Sun is about halfway through its life!',
+   power:'Starlight — illuminates dark places with golden light.'},
+  {id:4,  name:'Niko',     emoji:'😊', color:'#c8e6c9', rarity:'common',
+   intro:'Niko niko~! Smiles for everyone!',
+   clue:'Pipi likes to bounce around on hills.',
+   fact:'Smiling is contagious — seeing someone smile activates the same muscles in your face!',
+   power:'Joy Wave — spreads happiness in a wide radius.'},
+  {id:5,  name:'Pipi',     emoji:'🐣', color:'#fff9c4', rarity:'common',
+   intro:'Pipi! Pipi! You caught up to me!',
+   clue:'Mimi is very shy — check behind tall rocks.',
+   fact:'Baby chicks can communicate with their mother before they even hatch!',
+   power:'Hatch Burst — cracks open good luck like an egg.'},
+  {id:6,  name:'Mimi',     emoji:'🐭', color:'#f8bbd0', rarity:'common',
+   intro:'Eek! You saw me? I\'m so embarrassed~',
+   clue:'Koko dances on flat open plains!',
+   fact:'Mice can squeeze through gaps as small as a dime!',
+   power:'Tiny Step — can shrink to sneak through any obstacle.'},
+  {id:7,  name:'Koko',     emoji:'🥥', color:'#d7ccc8', rarity:'common',
+   intro:'Koko koko~! Dance with me!',
+   clue:'Lulu likes to sit on top of little hills.',
+   fact:'Coconut water is so pure it can be used as an emergency IV drip!',
+   power:'Tropical Groove — makes everyone around want to dance.'},
+  {id:8,  name:'Lulu',     emoji:'🌼', color:'#fff176', rarity:'common',
+   intro:'Lulu was sunbathing and waiting for you~',
+   clue:'Boba can be found near clusters of flowers.',
+   fact:'Dandelions are entirely edible — every part from root to flower!',
+   power:'Sunshine Bloom — makes flowers grow instantly around her.'},
+  {id:9,  name:'Boba',     emoji:'🧋', color:'#a1887f', rarity:'common',
+   intro:'I taste like adventure and brown sugar~',
+   clue:'Dango sticks close to water bodies.',
+   fact:'Bubble tea was invented in Taiwan in the 1980s and is now worldwide!',
+   power:'Pearl Cannon — shoots chewy tapioca pearls at obstacles.'},
+  {id:10, name:'Dango',    emoji:'🍡', color:'#f48fb1', rarity:'common',
+   intro:'Three Dangos, one big heart~!',
+   clue:'Taiyaki loves sunny open spots.',
+   fact:'Hanami dango are eaten during cherry blossom viewing parties in Japan!',
+   power:'Sweet Stack — stacks power from friends nearby.'},
+  {id:11, name:'Taiyaki',  emoji:'🐟', color:'#ffcc80', rarity:'common',
+   intro:'I\'m a fish-shaped cake — sweet inside!',
+   clue:'Pocky stands tall near straight paths.',
+   fact:'Taiyaki has been sold in Japan since 1909 — over 100 years!',
+   power:'Golden Swim — can swim through land as if it were water.'},
+  {id:12, name:'Pocky',    emoji:'🍫', color:'#6d4c41', rarity:'common',
+   intro:'Chocolate or strawberry? The real answer is both~',
+   clue:'Ramune bubbles near cold streams.',
+   fact:'Pocky Day is celebrated on November 11 (11/11) because the sticks look like the date!',
+   power:'Chocolate Dip — coats anything in delicious protective chocolate.'},
+  {id:13, name:'Ramune',   emoji:'🔵', color:'#81d4fa', rarity:'common',
+   intro:'Fizzy and fun — pop my marble~!',
+   clue:'Matcha is green like the trees in the grove.',
+   fact:'Ramune bottles have a unique marble stopper — pressing it releases the carbonation!',
+   power:'Bubble Burst — creates a fizzy forcefield.'},
+  {id:14, name:'Matcha',   emoji:'🍵', color:'#a5d6a7', rarity:'common',
+   intro:'Bitter-sweet, just like a lovely day~',
+   clue:'Ichigo loves strawberry-colored sunsets.',
+   fact:'Matcha has 137 times more antioxidants than regular green tea!',
+   power:'Zen Calm — stops all enemies in their tracks with pure serenity.'},
+  {id:15, name:'Ichigo',   emoji:'🍓', color:'#ef9a9a', rarity:'common',
+   intro:'Ichigo means strawberry AND one-five in Japanese!',
+   clue:'Yuzu is bright yellow — look in sunny meadows.',
+   fact:'Japan grows luxury strawberries that can cost over $10 each!',
+   power:'Berry Boost — supercharges allies with vitamin energy.'},
+  {id:16, name:'Yuzu',     emoji:'🍋', color:'#fff176', rarity:'common',
+   intro:'Zesty and warm — I smell like happiness!',
+   clue:'Mikan likes to roll down gentle slopes.',
+   fact:'Yuzu is used in Japanese hot baths on Winter Solstice for good health!',
+   power:'Citrus Zap — launches bright citrus energy bolts.'},
+  {id:17, name:'Mikan',    emoji:'🍊', color:'#ffb74d', rarity:'common',
+   intro:'Mikan-chan rolling in~!',
+   clue:'Ume prefers shaded places under trees.',
+   fact:'Mikan oranges peel so easily Japanese kids learn to peel them in kindergarten!',
+   power:'Roll Attack — becomes an unstoppable rolling orange.'},
+  {id:18, name:'Ume',      emoji:'🌺', color:'#f06292', rarity:'common',
+   intro:'Plum blossoms before cherry blossoms~ I\'m first!',
+   clue:'Fuji is tall and proud — look uphill.',
+   fact:'Plum blossoms bloom in late winter, symbolizing perseverance through hard times!',
+   power:'Early Bloom — brings spring to any area instantly.'},
+  {id:19, name:'Fuji',     emoji:'🗻', color:'#b0bec5', rarity:'common',
+   intro:'The summit welcomes the worthy!',
+   clue:'Panda likes bamboo-green areas.',
+   fact:'Mt. Fuji is a stratovolcano that last erupted in 1707!',
+   power:'Mountain Stance — becomes immovable as a mountain.'},
+  {id:20, name:'Panda',    emoji:'🐼', color:'#eceff1', rarity:'common',
+   intro:'Panda panda~! Bamboo for everyone!',
+   clue:'Usagi hops in open grassy areas.',
+   fact:'Giant pandas have a false thumb — an enlarged wrist bone for gripping bamboo!',
+   power:'Cuddle Crush — defeats enemies with overwhelming cuteness.'},
+  {id:21, name:'Usagi',    emoji:'🐰', color:'#f8bbd0', rarity:'common',
+   intro:'Hop hop hop~ you\'re fast!',
+   clue:'Neko stretches out on warm flat stones.',
+   fact:'Rabbits can jump up to 9 feet in a single leap!',
+   power:'Moon Hop — jumps to the moon and back in a flash.'},
+  {id:22, name:'Neko',     emoji:'🐱', color:'#ffecb3', rarity:'common',
+   intro:'Nyan~! Finally, a worthy human!',
+   clue:'Kuma snoozes near dense tree groups.',
+   fact:'Cats have 32 muscles in each ear and can rotate them 180 degrees!',
+   power:'Purr Field — emits healing vibrations at 25-50 Hz.'},
+  {id:23, name:'Kuma',     emoji:'🐻', color:'#795548', rarity:'common',
+   intro:'Kuma bear says hello~ got honey?',
+   clue:'Tori flies — watch the highest points.',
+   fact:'Bears have an incredible sense of smell — 7 times better than a bloodhound!',
+   power:'Honey Trap — lures anything with irresistible honey aroma.'},
+  {id:24, name:'Tori',     emoji:'🐦', color:'#81d4fa', rarity:'common',
+   intro:'Tweet tweet! You actually caught up to me!',
+   clue:'Hana blooms wherever flowers gather.',
+   fact:'Birds have hollow bones to reduce weight for flight — but they\'re still strong!',
+   power:'Wind Rider — can fly and carry friends through the sky.'},
+  {id:25, name:'Hana',     emoji:'💐', color:'#f48fb1', rarity:'common',
+   intro:'Fresh and fragrant — breathe me in~',
+   clue:'Tsuki comes out when the sky is darkening.',
+   fact:'A single rose is a symbol of love, but giving 108 roses is a marriage proposal in Japan!',
+   power:'Pollen Cloud — causes happy sneezing that spreads joy.'},
+  {id:26, name:'Tsuki',    emoji:'🌙', color:'#e1f5fe', rarity:'common',
+   intro:'The moon guided you here — you must be special!',
+   clue:'Hime likes the center of things — try the middle of large areas.',
+   fact:'The Moon moves 3.8 cm farther from Earth every year!',
+   power:'Moonbeam Pull — controls tides and emotions.'},
+  {id:27, name:'Hime',     emoji:'👑', color:'#ffe082', rarity:'common',
+   intro:'A princess never hides for long~!',
+   clue:'Yuki loves cold, high-elevation spots.',
+   fact:'The word "hime" means princess in Japanese and is used in many fairy tale names!',
+   power:'Royal Command — anyone nearby wants to bow and help.'},
+  {id:28, name:'Yuki',     emoji:'❄️', color:'#e3f2fd', rarity:'common',
+   intro:'Cold as a snowflake, warm as a friend~',
+   clue:'Sora drifts wherever the view is widest.',
+   fact:'No two snowflakes are exactly alike — each is a unique crystal structure!',
+   power:'Blizzard Dance — creates a beautiful snowstorm on command.'},
+  {id:29, name:'Sora',     emoji:'☁️', color:'#bbdefb', rarity:'common',
+   intro:'Sky and clouds — that\'s my whole personality~',
+   clue:'Aki turns golden — look in wide golden-lit fields.',
+   fact:'A single fluffy cumulus cloud can weigh over 500,000 kg!',
+   power:'Cloud Surf — rides clouds like a skateboard.'},
+  {id:30, name:'Aki',      emoji:'🍂', color:'#ffb74d', rarity:'common',
+   intro:'Autumn breeze, golden leaves~!',
+   clue:'Natsu blazes in the brightest open areas.',
+   fact:'Leaves change color in autumn because chlorophyll breaks down, revealing hidden pigments!',
+   power:'Leaf Spiral — creates a vortex of autumn leaves.'},
+  {id:31, name:'Natsu',    emoji:'☀️', color:'#ffee58', rarity:'common',
+   intro:'Hot summer vibes incoming~!',
+   clue:'Fuku hides in lucky corners of the map.',
+   fact:'The hottest temperature ever recorded was 56.7°C in Death Valley, California!',
+   power:'Heatwave — melts any obstacle with intense summer energy.'},
+  {id:32, name:'Fuku',     emoji:'🍀', color:'#66bb6a', rarity:'common',
+   intro:'Good luck finding me~! Oh wait, you did!',
+   clue:'Ai hides where things feel the most peaceful.',
+   fact:'Four-leaf clovers are found 1 in every 10,000 three-leaf clovers!',
+   power:'Lucky Clover — increases fortune for everyone nearby.'},
+  {id:33, name:'Ai',       emoji:'💖', color:'#f48fb1', rarity:'common',
+   intro:'Love found you — how sweet~!',
+   clue:'Koi swims near any water body.',
+   fact:'The Japanese word "ai" means both love and indigo — a colorful coincidence!',
+   power:'Love Beam — shoots pink beams that make friends of enemies.'},
+  {id:34, name:'Koi',      emoji:'🐠', color:'#ef5350', rarity:'common',
+   intro:'Colorful like my scales~ splish splash!',
+   clue:'Kiri hides in the mist — look through foggy areas.',
+   fact:'Koi fish can live over 200 years — some koi are older than your great-great-grandparents!',
+   power:'Current Ride — can navigate through any liquid or current.'},
+  {id:35, name:'Kiri',     emoji:'🌫️', color:'#eceff1', rarity:'common',
+   intro:'Misty and mysterious~ can you even see me?',
+   clue:'Shiro prefers pure white open spaces.',
+   fact:'Fog is just a low-lying cloud — technically you\'re inside a cloud when it\'s foggy!',
+   power:'Mist Veil — disappears into fog and reappears anywhere.'},
+  {id:36, name:'Shiro',    emoji:'⬜', color:'#fafafa', rarity:'common',
+   intro:'As white and pure as fresh snow~',
+   clue:'Kuro lurks in shadowy corners.',
+   fact:'White light contains all colors of the rainbow — a prism reveals them!',
+   power:'White Canvas — transforms any environment into a blank peaceful space.'},
+  {id:37, name:'Kuro',     emoji:'⬛', color:'#424242', rarity:'common',
+   intro:'Dark but cute — I contain all colors~',
+   clue:'Aka is bright red — find it in warm sunny zones.',
+   fact:'Black holes are so dense that not even light can escape their gravity!',
+   power:'Shadow Merge — can hide inside any shadow undetected.'},
+  {id:38, name:'Aka',      emoji:'🔴', color:'#ef5350', rarity:'common',
+   intro:'Bold, bright, and impossible to ignore!',
+   clue:'Ao flows blue near water streams.',
+   fact:'Red is the first color babies can see clearly after birth!',
+   power:'Red Alert — signals all allies with a burst of energy.'},
+  {id:39, name:'Ao',       emoji:'🔵', color:'#42a5f5', rarity:'common',
+   intro:'Blue like the deep ocean and wide sky~!',
+   clue:'Tanuki has a big belly — look near round hills.',
+   fact:'Blue is the world\'s most universally liked color across all cultures!',
+   power:'Ocean Wave — summons a wave of calming blue energy.'},
+  // --- UNCOMMON (30) ---
+  {id:40, name:'Tanuki',   emoji:'🦝', color:'#8d6e63', rarity:'uncommon',
+   intro:'Pom poko~! My belly is my drum!',
+   clue:'Kitsune runs fast — look far to the north.',
+   fact:'Tanuki (raccoon dogs) are real animals in Japan and are symbols of good luck!',
+   power:'Shapeshifter — can transform into any object to hide or surprise.'},
+  {id:41, name:'Kitsune',  emoji:'🦊', color:'#ff7043', rarity:'uncommon',
+   intro:'Nine tails, all floofy, all mine~!',
+   clue:'Tengu is proud — stands on the highest terrain.',
+   fact:'In Japanese folklore, foxes gain a new tail every 100 years and become divine at nine tails!',
+   power:'Fox Fire — creates blue flames that hypnotize and confuse.'},
+  {id:42, name:'Tengu',    emoji:'👺', color:'#ef5350', rarity:'uncommon',
+   intro:'My nose is just... aerodynamic. I\'m cute, promise!',
+   clue:'Oni is loud and lives in rocky areas.',
+   fact:'Tengu are mountain spirits in Japanese mythology who taught samurai martial arts!',
+   power:'Wind Blade — slices through anything with mountain-wind force.'},
+  {id:43, name:'Oni',      emoji:'👹', color:'#7b1fa2', rarity:'uncommon',
+   intro:'RAAAWR... just kidding, I\'m actually adorable!',
+   clue:'Mermaid stays close to any water body.',
+   fact:'Oni are thrown out during Setsubun (Bean Throwing Festival) to bring good luck!',
+   power:'Thunder Clap — shakes the earth with a single stomp.'},
+  {id:44, name:'Mermaid',  emoji:'🧜', color:'#26c6da', rarity:'uncommon',
+   intro:'Splash splash~! The sea brought you to me!',
+   clue:'Fairy dances near sparkly flowers.',
+   fact:'Mermaids appear in folklore on every continent — even landlocked ones!',
+   power:'Siren Song — calls all water creatures to her aid.'},
+  {id:45, name:'Fairy',    emoji:'🧚', color:'#ce93d8', rarity:'uncommon',
+   intro:'Fairy dust for everyone! You earned it~',
+   clue:'Sprite appears at the edge of forests.',
+   fact:'Fairy rings (circles of mushrooms) grow where fairies are said to dance at night!',
+   power:'Wish Grant — makes one small wish come true instantly.'},
+  {id:46, name:'Sprite',   emoji:'✨', color:'#fff176', rarity:'uncommon',
+   intro:'Blink and you\'ll miss me~ you actually saw me!',
+   clue:'Pixie hides in very small tight spaces.',
+   fact:'The word "sprite" comes from the Latin "spiritus" meaning breath or spirit!',
+   power:'Blink Step — teleports short distances in the blink of an eye.'},
+  {id:47, name:'Pixie',    emoji:'🌟', color:'#ffee58', rarity:'uncommon',
+   intro:'Tiny but MIGHTY! Don\'t underestimate me!',
+   clue:'Wisp floats in low-light dusk areas.',
+   fact:'Pixies originate from Cornwall, England, where they were said to lure travelers astray!',
+   power:'Dust Trail — leaves a trail of sparkling magic that others can follow.'},
+  {id:48, name:'Wisp',     emoji:'💙', color:'#81d4fa', rarity:'uncommon',
+   intro:'Follow the light~ I\'ll guide you safely!',
+   clue:'Glow brightens the darkest spots.',
+   fact:'Will-o\'-wisps are bioluminescent gas that occurs naturally in marshes!',
+   power:'Guiding Light — leads allies through darkness to safety.'},
+  {id:49, name:'Glow',     emoji:'🌟', color:'#fff9c4', rarity:'uncommon',
+   intro:'I light the way through the darkest nights~',
+   clue:'Bloom loves flower patches.',
+   fact:'Fireflies create their glow through a chemical reaction called bioluminescence — no heat!',
+   power:'Eternal Glow — can illuminate anything for as long as needed.'},
+  {id:50, name:'Bloom',    emoji:'🌻', color:'#ffee58', rarity:'uncommon',
+   intro:'Blossoming with joy just for you~!',
+   clue:'Petal drifts in open breezy areas.',
+   fact:'Sunflowers always face the sun — this behavior is called heliotropism!',
+   power:'Mega Bloom — causes a massive flower explosion in all directions.'},
+  {id:51, name:'Petal',    emoji:'🌹', color:'#ef9a9a', rarity:'uncommon',
+   intro:'Delicate as a rose petal, tough as a thorn~',
+   clue:'Dewdrop hides near plants in the morning.',
+   fact:'Rose petals are edible and have been used in cooking for thousands of years!',
+   power:'Thorn Barrier — creates a ring of beautiful but impenetrable rose thorns.'},
+  {id:52, name:'Dewdrop',  emoji:'💧', color:'#b3e5fc', rarity:'uncommon',
+   intro:'Crystal clear and perfectly fresh~!',
+   clue:'Rainbow appears where water meets sunlight.',
+   fact:'Dewdrops act as natural magnifying lenses — each one contains a tiny upside-down image!',
+   power:'Lens Refract — bends light to create illusions and rainbows.'},
+  {id:53, name:'Rainbow',  emoji:'🌈', color:'#ff6b6b', rarity:'uncommon',
+   intro:'Seven colors, one friend — that\'s me!',
+   clue:'Starfall drifts where the sky is most open.',
+   fact:'A rainbow is actually a full circle — we only see the arch from the ground!',
+   power:'Chromatic Bridge — creates a rainbow road to walk across the sky.'},
+  {id:54, name:'Starfall', emoji:'🌠', color:'#e1bee7', rarity:'uncommon',
+   intro:'Catch me before I disappear~!',
+   clue:'Moonbeam glows in open moonlit areas.',
+   fact:'Most shooting stars are tiny particles — smaller than a grain of sand!',
+   power:'Meteor Shower — calls down a storm of harmless glittering stars.'},
+  {id:55, name:'Moonbeam', emoji:'🌙', color:'#e8eaf6', rarity:'uncommon',
+   intro:'Silver thread of moonlight delivered to you~!',
+   clue:'Sunray blazes in the brightest open spot.',
+   fact:'Moonlight is just reflected sunlight — the moon produces no light of its own!',
+   power:'Silver Ray — a beam of moonlight that calms and heals all it touches.'},
+  {id:56, name:'Sunray',   emoji:'🌞', color:'#ffd54f', rarity:'uncommon',
+   intro:'Warm and golden — like a hug from the sky!',
+   clue:'Cloudpuff floats on the highest ground.',
+   fact:'It takes sunlight about 8 minutes to travel from the sun to Earth!',
+   power:'Solar Flare — unleashes a burst of warm golden energy.'},
+  {id:57, name:'Cloudpuff',emoji:'☁️', color:'#eceff1', rarity:'uncommon',
+   intro:'Soft as a cloud — because I AM one!',
+   clue:'Misty hides in low-lying foggy patches.',
+   fact:'Clouds can travel at speeds of over 100 mph in the jet stream!',
+   power:'Cloud Cushion — creates a soft cloud platform anywhere.'},
+  {id:58, name:'Misty',    emoji:'🌫️', color:'#cfd8dc', rarity:'uncommon',
+   intro:'Can you find me in the mist? You did!',
+   clue:'Frosty loves the coldest hillsides.',
+   fact:'San Francisco\'s famous fog even has its own name and Twitter account: Karl the Fog!',
+   power:'Fog of Peace — confuses enemies while keeping allies calm.'},
+  {id:59, name:'Frosty',   emoji:'🌨️', color:'#e3f2fd', rarity:'uncommon',
+   intro:'Cold hands, warm heart~!',
+   clue:'Coral prefers colorful spots.',
+   fact:'The largest snowflake ever recorded measured 38 cm wide — in Montana, 1887!',
+   power:'Ice Crystal — freezes anything instantly in beautiful ice sculptures.'},
+  {id:60, name:'Coral',    emoji:'🪸', color:'#ff8a65', rarity:'uncommon',
+   intro:'Pretty as a reef, sharp as a sea urchin!',
+   clue:'Pearl is found near round shapes.',
+   fact:'Coral reefs cover less than 1% of the ocean floor but house 25% of all marine species!',
+   power:'Reef Armor — grows a protective coral shell that deflects all harm.'},
+  {id:61, name:'Pearl',    emoji:'🔮', color:'#f3e5f5', rarity:'uncommon',
+   intro:'Precious and rare — just like our meeting~!',
+   clue:'Crystal shines where light reflects most.',
+   fact:'Natural pearls take 5-20 years to form — each one is a tiny miracle!',
+   power:'Luster Shield — reflects attacks back with blinding light.'},
+  {id:62, name:'Crystal',  emoji:'💎', color:'#b2ebf2', rarity:'uncommon',
+   intro:'Clear as glass, cute as a button!',
+   clue:'Jade is green — look in the greenest areas.',
+   fact:'Some crystals can generate electricity when squeezed — this is called piezoelectricity!',
+   power:'Crystal Resonance — shatters obstacles with perfect sonic vibration.'},
+  {id:63, name:'Jade',     emoji:'💚', color:'#66bb6a', rarity:'uncommon',
+   intro:'Ancient and adorable — wisdom takes many forms!',
+   clue:'Ruby burns in red-toned warm areas.',
+   fact:'Jade was more valuable than gold in ancient China and Mesoamerica!',
+   power:'Ancient Wisdom — instantly knows the solution to any problem.'},
+  {id:64, name:'Ruby',     emoji:'❤️', color:'#ef5350', rarity:'uncommon',
+   intro:'Ruby-red and rare — like a good friend!',
+   clue:'Sapphire sparkles in blue-tinged zones.',
+   fact:'Rubies and sapphires are the same mineral (corundum) — just different colors!',
+   power:'Crimson Laser — shoots a focused ruby laser beam.'},
+  {id:65, name:'Sapphire', emoji:'💙', color:'#42a5f5', rarity:'uncommon',
+   intro:'Deep blue and dreamy — like the ocean at midnight!',
+   clue:'Topaz glows golden in sunny clearings.',
+   fact:'The Star of India is a 563-carat sapphire and one of the world\'s largest!',
+   power:'Starlight Sapphire — creates a protective dome of blue starlight.'},
+  {id:66, name:'Topaz',    emoji:'💛', color:'#ffd54f', rarity:'uncommon',
+   intro:'Golden and warm — sunshine in gem form!',
+   clue:'Amber is frozen in time — look near still areas.',
+   fact:'Ancient Greeks believed topaz gave them strength and was used by warriors!',
+   power:'Golden Aura — fills the area with warm golden protective light.'},
+  {id:67, name:'Amber',    emoji:'🟠', color:'#ffa726', rarity:'uncommon',
+   intro:'Ancient resin beauty — time stood still for me!',
+   clue:'Opal changes colors — find the most colorful spot.',
+   fact:'Scientists have found insects and even dinosaur feathers preserved in amber!',
+   power:'Time Freeze — pauses everything in a bubble of amber light.'},
+  {id:68, name:'Opal',     emoji:'🌈', color:'#e040fb', rarity:'uncommon',
+   intro:'Every angle is a new color — I contain multitudes!',
+   clue:'Ivory is elegant — look near tall structures.',
+   fact:'Australia produces 95% of the world\'s opals!',
+   power:'Spectral Shift — changes appearance to perfectly blend in anywhere.'},
+  {id:69, name:'Ivory',    emoji:'🤍', color:'#fafafa', rarity:'uncommon',
+   intro:'Pure and graceful — elegance personified~!',
+   clue:'Dreamer likes to wander far from the center.',
+   fact:'The ivory tower metaphor comes from the beautiful ivory used in ancient temples!',
+   power:'Grace Field — makes all movement elegant and effortless.'},
+  // --- RARE (20) ---
+  {id:70, name:'Dreamer',  emoji:'💭', color:'#ce93d8', rarity:'rare',
+   intro:'Dreams become reality when you believe~',
+   clue:'Wisher appears near the tallest point you can find.',
+   fact:'The average person has 3-5 dreams per night but forgets 95% of them by morning!',
+   power:'Dream Walk — enters and shapes anyone\'s dream.'},
+  {id:71, name:'Wisher',   emoji:'🌠', color:'#e1bee7', rarity:'rare',
+   intro:'Make a wish — I\'m here to help it come true~!',
+   clue:'Shimmer dances in reflective light.',
+   fact:'The tradition of wishing on shooting stars dates back to ancient Greece!',
+   power:'Wish Weaver — makes up to three wishes partially come true.'},
+  {id:72, name:'Shimmer',  emoji:'✨', color:'#fff9c4', rarity:'rare',
+   intro:'I shimmer, therefore I am~!',
+   clue:'Sparkle is near the most dazzling thing you see.',
+   fact:'Iridescence in nature (like butterflies) comes from microscopic light-refracting structures!',
+   power:'Shimmer Wave — distracts all with blinding, beautiful light.'},
+  {id:73, name:'Sparkle',  emoji:'💫', color:'#ffe082', rarity:'rare',
+   intro:'Ta-da~! I\'ve been waiting for someone worthy!',
+   clue:'Twinkle blinks in and out — be very patient.',
+   fact:'A diamond sparkles because it bends light more than almost any other natural substance!',
+   power:'Sparkle Bomb — an explosion of harmless dazzling light.'},
+  {id:74, name:'Twinkle',  emoji:'⭐', color:'#fff176', rarity:'rare',
+   intro:'Twinkle twinkle little star~! You found me!',
+   clue:'Glimmer is at the edge of the world — go far.',
+   fact:'Stars don\'t actually twinkle — the atmosphere bends their light to create the effect!',
+   power:'Twinkle Step — moves so fast they appear to twinkle between locations.'},
+  {id:75, name:'Glimmer',  emoji:'🌟', color:'#ffee58', rarity:'rare',
+   intro:'A soft glow at the edge of perception — that\'s me~',
+   clue:'Radiance lives where the sky meets land.',
+   fact:'The faintest stars visible to the naked eye are quadrillions of km away!',
+   power:'Edge Glow — creates a powerful aura at maximum range.'},
+  {id:76, name:'Radiance', emoji:'☀️', color:'#ffd54f', rarity:'rare',
+   intro:'I am pure, distilled light~!',
+   clue:'Aurora dances at the very edges of the map.',
+   fact:'Radiant energy from the Sun takes 100,000 years to travel from the core to the surface!',
+   power:'Full Radiance — blindingly bright light that purifies everything it touches.'},
+  {id:77, name:'Aurora',   emoji:'🌌', color:'#7c4dff', rarity:'rare',
+   intro:'Northern lights, southern heart~!',
+   clue:'Celestia is always overhead — look up and outward.',
+   fact:'Auroras are caused by solar particles colliding with Earth\'s magnetic field at the poles!',
+   power:'Aurora Veil — wraps allies in shimmering curtains of protective aurora light.'},
+  {id:78, name:'Celestia', emoji:'🌠', color:'#e8eaf6', rarity:'rare',
+   intro:'Star-born and sky-kissed — you passed the test!',
+   clue:'Luna rests where moonlight pools at night.',
+   fact:'Celestial bodies like asteroids can be worth quadrillions of dollars in minerals!',
+   power:'Celestial Map — reveals the location of everything within a huge radius.'},
+  {id:79, name:'Luna',     emoji:'🌙', color:'#e1bee7', rarity:'rare',
+   intro:'Moon maiden at your service~!',
+   clue:'Solara blazes at the southernmost blazing point.',
+   fact:'The Moon is slowly drifting away from Earth at 3.8 cm per year!',
+   power:'Lunar Pull — controls gravity in a local area.'},
+  {id:80, name:'Solara',   emoji:'🌞', color:'#ffd54f', rarity:'rare',
+   intro:'The Sun\'s beloved kawaii child~!',
+   clue:'Nebula drifts where colors blend together beautifully.',
+   fact:'The Sun contains 99.86% of all mass in our solar system!',
+   power:'Solar Prominence — unleashes a solar flare that energizes allies.'},
+  {id:81, name:'Nebula',   emoji:'🌌', color:'#7c4dff', rarity:'rare',
+   intro:'Born from stardust, returning to stardust~!',
+   clue:'Cosmos is at the very center of everything.',
+   fact:'The Pillars of Creation nebula is a stellar nursery where new stars are being born!',
+   power:'Nebula Drift — transforms into colorful cosmic gas and reforms elsewhere.'},
+  {id:82, name:'Cosmos',   emoji:'🌌', color:'#512da8', rarity:'rare',
+   intro:'The universe, compressed into kawaii form~!',
+   clue:'Stardust scatters at the highest altitude.',
+   fact:'The observable universe contains more stars than grains of sand on all Earth\'s beaches!',
+   power:'Cosmic Ray — channels the energy of the universe into a single focused beam.'},
+  {id:83, name:'Stardust', emoji:'✨', color:'#e040fb', rarity:'rare',
+   intro:'I am what remains when stars finish their journey~',
+   clue:'Galaxy swirls far to the east.',
+   fact:'Every atom in your body was forged in the heart of a dying star — you are stardust!',
+   power:'Stardust Scatter — transforms into a cloud of star particles and reassembles.'},
+  {id:84, name:'Galaxy',   emoji:'🌌', color:'#3f51b5', rarity:'rare',
+   intro:'A galaxy in your pocket — handle with care~!',
+   clue:'Nova explodes in energy — look in wide open spaces.',
+   fact:'The Milky Way galaxy has over 200 billion stars and is 100,000 light-years wide!',
+   power:'Galactic Spin — creates a gravity well that pulls all nearby things together.'},
+  {id:85, name:'Nova',     emoji:'💥', color:'#ff6f00', rarity:'rare',
+   intro:'Supernova kawaii style — BOOM~!',
+   clue:'Comet streaks along straight paths far away.',
+   fact:'A supernova explosion releases more energy in seconds than the Sun will in its lifetime!',
+   power:'Nova Burst — explodes with light that destroys obstacles in all directions.'},
+  {id:86, name:'Comet',    emoji:'☄️', color:'#ff8f00', rarity:'rare',
+   intro:'Blazing trail of cuteness across the sky~!',
+   clue:'Meteor lands hard — find the most remote spot.',
+   fact:'Halley\'s Comet returns every 75 years — the last visit was 1986, next is 2061!',
+   power:'Comet Dash — accelerates to near-lightspeed for a short burst.'},
+  {id:87, name:'Meteor',   emoji:'🌠', color:'#ef6c00', rarity:'rare',
+   intro:'Crash landed, still adorable — how?!',
+   clue:'Eclipse hides where light and dark meet.',
+   fact:'Most meteorites come from the asteroid belt between Mars and Jupiter!',
+   power:'Impact Zone — creates a crater that becomes a healing pool of energy.'},
+  {id:88, name:'Eclipse',  emoji:'🌑', color:'#1a237e', rarity:'rare',
+   intro:'I block the sun and still manage to be cute~!',
+   clue:'Solstice marks the turning — find farthest north or south.',
+   fact:'A total solar eclipse moves across Earth\'s surface at over 1,600 km per hour!',
+   power:'Total Eclipse — plunges an area into calming darkness and reveals hidden things.'},
+  {id:89, name:'Solstice', emoji:'☯️', color:'#4dd0e1', rarity:'rare',
+   intro:'Balance and beauty in perfect harmony~!',
+   clue:'Seraphim is rarest of all — explore absolutely everywhere.',
+   fact:'Stonehenge was built to perfectly align with the sunrise on the summer solstice!',
+   power:'Equinox Balance — perfectly balances all energies and heals all imbalances.'},
+  // --- LEGENDARY (10) ---
+  {id:90, name:'Seraphim', emoji:'👼', color:'#fff9c4', rarity:'legendary',
+   intro:'An angel descended just for you — are you worthy?',
+   clue:'Keep catching others — I appear to the dedicated!',
+   fact:'Seraphim are described as six-winged angels who sing eternally in divine presence!',
+   power:'Divine Light — purifies everything in sight and grants temporary flight.'},
+  {id:91, name:'Ethereal', emoji:'🌫️', color:'#e8eaf6', rarity:'legendary',
+   intro:'Between worlds, between moments — you found the in-between~',
+   clue:'Arcana guards ancient knowledge — explore everything.',
+   fact:'The concept of the "ethereal plane" exists across dozens of independent cultures!',
+   power:'Phase Shift — moves through solid objects and dimensions.'},
+  {id:92, name:'Arcana',   emoji:'🔮', color:'#7c4dff', rarity:'legendary',
+   intro:'Mystic and magnificent — you\'ve unlocked hidden knowledge!',
+   clue:'Luminary shines where no shadow can exist.',
+   fact:'Tarot cards originated in 15th century Europe as playing cards before becoming mystical!',
+   power:'Arcane Mastery — instantly understands and counters any ability.'},
+  {id:93, name:'Luminary', emoji:'💡', color:'#ffd54f', rarity:'legendary',
+   intro:'The light of all worlds — you shine too, to have found me~',
+   clue:'Divinity is found in the most peaceful, serene place.',
+   fact:'The word "luminary" originally meant a lamp or light source in ancient Latin!',
+   power:'Enlightenment — raises the consciousness and strength of all nearby allies.'},
+  {id:94, name:'Divinity', emoji:'✨', color:'#fff9c4', rarity:'legendary',
+   intro:'Divine kawaii perfection, at your service~!',
+   clue:'Omniveil covers everything — search the entire map.',
+   fact:'The concept of divinity appears in every human culture that has ever existed on Earth!',
+   power:'Divine Blessing — grants invincibility and joy to all allies for a short time.'},
+  {id:95, name:'Omniveil', emoji:'🌐', color:'#4fc3f7', rarity:'legendary',
+   intro:'I see all, know all, and somehow still manage to be adorable!',
+   clue:'Transcend goes beyond limits — look at the very edge.',
+   fact:'The total information on the internet weighs about 50 grams in electron mass!',
+   power:'Omni Sight — can see through walls, darkness, and time itself.'},
+  {id:96, name:'Transcend',emoji:'🦋', color:'#ce93d8', rarity:'legendary',
+   intro:'Beyond all limits — and yet, here you are~!',
+   clue:'Infinity has no end — walk far and keep walking.',
+   fact:'A caterpillar completely dissolves itself inside its chrysalis before becoming a butterfly!',
+   power:'Metamorphosis — transforms the environment around it completely.'},
+  {id:97, name:'Infinity', emoji:'♾️', color:'#e040fb', rarity:'legendary',
+   intro:'Forever yours~! And that means forever.',
+   clue:'Eternity waits where you least expect.',
+   fact:'There are different sizes of infinity in mathematics — some infinities are bigger than others!',
+   power:'Infinite Loop — endlessly multiplies any positive effect.'},
+  {id:98, name:'Eternity', emoji:'⏳', color:'#b39ddb', rarity:'legendary',
+   intro:'Time means nothing to the kawaii~',
+   clue:'Genesis is the beginning — think about where it all started.',
+   fact:'The universe is 13.8 billion years old — and will likely exist for trillions more!',
+   power:'Time Dilation — slows all time around it while the holder moves freely.'},
+  {id:99, name:'Genesis',  emoji:'🌱', color:'#a5d6a7', rarity:'legendary',
+   intro:'The first breath of all creation — and you found it! You are a true Kawaii Master!',
+   clue:'You found them all! You\'re amazing!',
+   fact:'The first self-replicating molecules appeared on Earth about 4 billion years ago!',
+   power:'Creation — can bring anything imagined into temporary existence.'},
 ];
 
-// ========================================================
-// TERRAIN NOISE (simple Perlin-like)
-// ========================================================
-function noise2D(x, z) {
-  const X = Math.floor(x) & 255, Z = Math.floor(z) & 255;
-  x -= Math.floor(x); z -= Math.floor(z);
-  const u = fade(x), v = fade(z);
-  const a = p[X]+Z, b = p[X+1]+Z;
-  return lerp(v,
-    lerp(u, grad(p[a],   x,   z),   grad(p[b],   x-1, z)),
-    lerp(u, grad(p[a+1], x,   z-1), grad(p[b+1], x-1, z-1))
-  );
+// ============================================================
+// NOISE
+// ============================================================
+function fade(t){return t*t*t*(t*(t*6-15)+10);}
+function lerp(t,a,b){return a+t*(b-a);}
+function grad(hash,x,z){const h=hash&3;return((h&1)?-x:x)+((h&2)?-z:z);}
+const _p=(()=>{const a=Array.from({length:256},(_,i)=>i);for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return[...a,...a];})();
+function noise2D(x,z){
+  const X=Math.floor(x)&255,Z=Math.floor(z)&255;
+  x-=Math.floor(x);z-=Math.floor(z);
+  const u=fade(x),v=fade(z),a=_p[X]+Z,b=_p[X+1]+Z;
+  return lerp(v,lerp(u,grad(_p[a],x,z),grad(_p[b],x-1,z)),lerp(u,grad(_p[a+1],x,z-1),grad(_p[b+1],x-1,z-1)));
 }
-function fade(t){ return t*t*t*(t*(t*6-15)+10); }
-function lerp(t,a,b){ return a+t*(b-a); }
-function grad(hash,x,z){
-  const h=hash&3;
-  return ((h&1)?-x:x)+((h&2)?-z:z);
-}
-const p = (() => {
-  const arr = Array.from({length:256},(_,i)=>i);
-  for(let i=255;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; }
-  return [...arr,...arr];
-})();
-
-function getHeight(x, z) {
-  let h = 0;
-  h += noise2D(x*0.008, z*0.008) * 18;
-  h += noise2D(x*0.02,  z*0.02)  * 8;
-  h += noise2D(x*0.06,  z*0.06)  * 3;
-  h += noise2D(x*0.15,  z*0.15)  * 1;
-  return h;
+function getHeight(x,z){
+  return noise2D(x*0.007,z*0.007)*16 + noise2D(x*0.02,z*0.02)*7 + noise2D(x*0.06,z*0.06)*2.5 + noise2D(x*0.15,z*0.15)*0.8;
 }
 
-// ========================================================
-// GAME STATE
-// ========================================================
-const WORLD_SIZE = 400;
-const CHAR_SPAWN_RADIUS = 180;
-let caught = new Set();
-let caughtSave = JSON.parse(localStorage.getItem('kawaii_caught') || '[]');
-caughtSave.forEach(id => caught.add(id));
+// ============================================================
+// STATE
+// ============================================================
+const WORLD_SIZE=400;
+let caught=new Set(JSON.parse(localStorage.getItem('kw_caught')||'[]'));
+let buildMode=false;
+let selColor='#ffb6c1';
+const BLOCK_COLORS=['#ffb6c1','#ffd6a5','#fdffb6','#caffbf','#9bf6ff','#bdb2ff','#f5c6ff','#ffffff'];
+const placedBlocks=new Map();
+const BSIZE=1; // Minecraft-scale blocks
+let nearbyChar=null,dialogueChar=null,factQueued=null;
+let locked=false;
+const keys={};
+let yaw=0,pitch=0;
+const playerVel=new THREE.Vector3();
+const GRAVITY=22,PHEIGHT=1.7,PSPEED=10;
+let onGround=false;
+let compassTimer=0,nearbyTimer=0;
 
-let buildMode = false;
-let selectedBlockColor = '#ffb6c1';
-const placedBlocks = new Map(); // key => mesh
-const BLOCK_COLORS = ['#ffb6c1','#ffd6a5','#fdffb6','#caffbf','#9bf6ff','#bdb2ff','#ffffff','#a8dadc'];
-
-let nearbyChar = null;
-let dialogueChar = null;
-let locked = false;
-let playerVel = new THREE.Vector3();
-const PLAYER_SPEED = 12;
-const PLAYER_HEIGHT = 1.7;
-const GRAVITY = 20;
-let onGround = false;
-
-// ========================================================
-// THREE.JS SETUP
-// ========================================================
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+// ============================================================
+// RENDERER / SCENE
+// ============================================================
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.3;
 document.body.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0xddeeff, 60, 280);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.FogExp2(0xc8e6ff,0.004);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 400);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.05,400);
 
-// ========================================================
+// ============================================================
 // LIGHTING
-// ========================================================
-const ambientLight = new THREE.AmbientLight(0xffeedd, 0.6);
-scene.add(ambientLight);
+// ============================================================
+scene.add(new THREE.AmbientLight(0xffe8ee,0.7));
+const sun=new THREE.DirectionalLight(0xfff4e0,1.5);
+sun.position.set(80,130,60);sun.castShadow=true;
+sun.shadow.mapSize.width=sun.shadow.mapSize.height=2048;
+sun.shadow.camera.near=0.5;sun.shadow.camera.far=400;
+sun.shadow.camera.left=sun.shadow.camera.bottom=-200;
+sun.shadow.camera.right=sun.shadow.camera.top=200;
+sun.shadow.bias=-0.001;
+scene.add(sun);
+const fill=new THREE.DirectionalLight(0xaaccff,0.4);
+fill.position.set(-40,20,-60);scene.add(fill);
+scene.add(new THREE.HemisphereLight(0x87ceeb,0x2d5a27,0.5));
 
-const sunLight = new THREE.DirectionalLight(0xfff5e0, 1.4);
-sunLight.position.set(80, 120, 60);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.width  = 2048;
-sunLight.shadow.mapSize.height = 2048;
-sunLight.shadow.camera.near = 0.5;
-sunLight.shadow.camera.far  = 400;
-sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -180;
-sunLight.shadow.camera.right = sunLight.shadow.camera.top  =  180;
-sunLight.shadow.bias = -0.001;
-scene.add(sunLight);
-
-const fillLight = new THREE.DirectionalLight(0xaaccff, 0.3);
-fillLight.position.set(-40, 20, -60);
-scene.add(fillLight);
-
-const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x558b2f, 0.4);
-scene.add(hemiLight);
-
-// ========================================================
-// TERRAIN
-// ========================================================
-const TERRAIN_SEGS = 150;
-const terrainGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, TERRAIN_SEGS, TERRAIN_SEGS);
-terrainGeo.rotateX(-Math.PI/2);
-
-const posArr = terrainGeo.attributes.position.array;
-for(let i=0; i<posArr.length; i+=3) {
-  const x = posArr[i], z = posArr[i+2];
-  posArr[i+1] = getHeight(x, z);
+// ============================================================
+// TERRAIN — anime-style with soft pastel vertex colors
+// ============================================================
+const TSEGS=160;
+const terrGeo=new THREE.PlaneGeometry(WORLD_SIZE,WORLD_SIZE,TSEGS,TSEGS);
+terrGeo.rotateX(-Math.PI/2);
+const posArr=terrGeo.attributes.position.array;
+for(let i=0;i<posArr.length;i+=3){posArr[i+1]=getHeight(posArr[i],posArr[i+2]);}
+terrGeo.computeVertexNormals();
+const colArr=[];
+const nrmArr=terrGeo.attributes.normal.array;
+for(let i=0;i<posArr.length/3;i++){
+  const y=posArr[i*3+1],up=nrmArr[i*3+1];
+  if(y<-2)       colArr.push(0.76,0.69,0.50); // sand/riverbed
+  else if(up<0.65) colArr.push(0.55,0.42,0.30); // steep cliff
+  else if(y>12)  colArr.push(0.92,0.92,0.95);   // snow cap
+  else if(y>7)   colArr.push(0.68,0.74,0.62);   // highland
+  else           colArr.push(0.42+Math.random()*0.06,0.72+Math.random()*0.06,0.38+Math.random()*0.05); // vivid grass
 }
-terrainGeo.computeVertexNormals();
+terrGeo.setAttribute('color',new THREE.Float32BufferAttribute(colArr,3));
+const terrMesh=new THREE.Mesh(terrGeo,new THREE.MeshLambertMaterial({vertexColors:true}));
+terrMesh.receiveShadow=true;
+scene.add(terrMesh);
 
-// Vertex color for terrain realism
-const colors = [];
-const normArr = terrainGeo.attributes.normal.array;
-for(let i=0; i<posArr.length/3; i++) {
-  const y = posArr[i*3+1];
-  const nx = normArr[i*3+1]; // up-ness
-  if(y < -2) { colors.push(0.55,0.45,0.3); }     // dirt/sand
-  else if(nx < 0.7) { colors.push(0.45,0.38,0.28); } // cliff
-  else if(y > 10)  { colors.push(0.85,0.85,0.85); }  // snow
-  else { colors.push(0.3+Math.random()*0.05, 0.6+Math.random()*0.08, 0.25+Math.random()*0.05); }
-}
-terrainGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+// Water
+const waterMat=new THREE.MeshPhongMaterial({color:0x64b5f6,transparent:true,opacity:0.72,shininess:120});
+const waterMesh=new THREE.Mesh(new THREE.PlaneGeometry(WORLD_SIZE,WORLD_SIZE),waterMat);
+waterMesh.rotateX(-Math.PI/2);waterMesh.position.y=-1.5;
+scene.add(waterMesh);
 
-const terrainMat = new THREE.MeshLambertMaterial({ vertexColors: true });
-const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-terrain.receiveShadow = true;
-scene.add(terrain);
-
-// ========================================================
-// WATER
-// ========================================================
-const waterGeo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE);
-waterGeo.rotateX(-Math.PI/2);
-const waterMat = new THREE.MeshPhongMaterial({
-  color: 0x64b5f6, transparent: true, opacity: 0.75,
-  shininess: 100, specular: 0xffffff
-});
-const water = new THREE.Mesh(waterGeo, waterMat);
-water.position.y = -1.5;
-water.receiveShadow = false;
-scene.add(water);
-
-// ========================================================
-// SKYBOX / CLOUDS
-// ========================================================
-function makeClouds() {
-  const mat = new THREE.MeshPhongMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
-  for(let i=0;i<25;i++) {
-    const g = new THREE.Group();
-    const cnt = 3+Math.floor(Math.random()*4);
-    for(let j=0;j<cnt;j++) {
-      const r = 4+Math.random()*6;
-      const sphere = new THREE.Mesh(new THREE.SphereGeometry(r,8,6), mat);
-      sphere.position.set(j*r*0.9, Math.random()*3, Math.random()*r*0.5);
-      g.add(sphere);
-    }
-    g.position.set(
-      (Math.random()-0.5)*350,
-      60+Math.random()*30,
-      (Math.random()-0.5)*350
-    );
-    scene.add(g);
-  }
-}
-makeClouds();
-
-// ========================================================
-// TREES
-// ========================================================
-function makeTree(x, z) {
-  const terrY = getHeight(x, z);
-  if(terrY < -1) return; // skip water areas
-  const g = new THREE.Group();
-
-  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
-  const trunkH = 2.5 + Math.random()*2;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.35, trunkH, 7), trunkMat);
-  trunk.position.y = trunkH/2;
-  trunk.castShadow = true;
-  g.add(trunk);
-
-  // pastel kawaii leaves
-  const leafColors = [0x81c784, 0xa5d6a7, 0xf48fb1, 0xf8bbd0, 0xce93d8];
-  const leafMat = new THREE.MeshLambertMaterial({ color: leafColors[Math.floor(Math.random()*leafColors.length)] });
-  const leafLayers = 2 + Math.floor(Math.random()*2);
-  for(let l=0;l<leafLayers;l++) {
-    const r = 2.5 - l*0.5 + Math.random()*0.5;
-    const h = 2.5 - l*0.4;
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), leafMat);
-    cone.position.y = trunkH + l*1.2;
-    cone.castShadow = true;
-    g.add(cone);
-  }
-  g.position.set(x, terrY, z);
-  scene.add(g);
-}
-
-for(let i=0;i<300;i++) {
-  const angle = Math.random()*Math.PI*2;
-  const dist  = 15+Math.random()*CHAR_SPAWN_RADIUS;
-  makeTree(Math.cos(angle)*dist, Math.sin(angle)*dist);
-}
-
-// ========================================================
-// FLOWERS / DECORATIONS
-// ========================================================
-function makeFlower(x, z) {
-  const y = getHeight(x, z);
-  if(y < 0) return;
-  const flowerColors = [0xff69b4, 0xff6b6b, 0xffe066, 0xb39ddb, 0xffffff];
-  const mat = new THREE.MeshLambertMaterial({ color: flowerColors[Math.floor(Math.random()*flowerColors.length)] });
-  const g = new THREE.Group();
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.5,5), new THREE.MeshLambertMaterial({color:0x66bb6a}));
-  stem.position.y = 0.25;
-  g.add(stem);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15,7,7), mat);
-  head.position.y = 0.6;
-  g.add(head);
-  g.position.set(x, y, z);
-  scene.add(g);
-}
-for(let i=0;i<600;i++) {
-  makeFlower((Math.random()-0.5)*WORLD_SIZE*0.9, (Math.random()-0.5)*WORLD_SIZE*0.9);
-}
-
-// Rocks
-for(let i=0;i<80;i++) {
-  const x = (Math.random()-0.5)*WORLD_SIZE*0.9;
-  const z = (Math.random()-0.5)*WORLD_SIZE*0.9;
-  const y = getHeight(x, z);
-  if(y < -1) continue;
-  const r = 0.4+Math.random()*1.2;
-  const rock = new THREE.Mesh(
-    new THREE.DodecahedronGeometry(r, 0),
-    new THREE.MeshLambertMaterial({ color: 0x90a4ae })
+// ============================================================
+// ANIME ENVIRONMENT — sakura trees, torii gates, lanterns
+// ============================================================
+function makeSakuraTree(x,z){
+  const y=getHeight(x,z);if(y<-0.5)return;
+  const g=new THREE.Group();
+  const trunkH=3+Math.random()*2.5;
+  const trunk=new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18,0.28,trunkH,8),
+    new THREE.MeshLambertMaterial({color:0x6d4c41})
   );
-  rock.position.set(x, y + r*0.4, z);
-  rock.rotation.set(Math.random(), Math.random(), Math.random());
-  rock.castShadow = true;
-  rock.receiveShadow = true;
-  scene.add(rock);
+  trunk.position.y=trunkH/2;trunk.castShadow=true;g.add(trunk);
+  // branches
+  for(let b=0;b<3+Math.floor(Math.random()*3);b++){
+    const bh=0.7+Math.random()*1;
+    const br=new THREE.Mesh(
+      new THREE.CylinderGeometry(0.07,0.12,bh,6),
+      new THREE.MeshLambertMaterial({color:0x5d4037})
+    );
+    br.position.set((Math.random()-0.5)*1.5,trunkH*0.6+b*0.5,(Math.random()-0.5)*1.5);
+    br.rotation.z=(Math.random()-0.5)*0.8;
+    br.castShadow=true;g.add(br);
+  }
+  // Anime pink blooms — big fluffy puffs
+  const bloomColors=[0xffb7d5,0xff8fb1,0xffc8de,0xffd6e8,0xff69b4];
+  const layers=2+Math.floor(Math.random()*3);
+  for(let l=0;l<layers;l++){
+    const r=2.2-l*0.3+Math.random()*0.5;
+    const bc=bloomColors[Math.floor(Math.random()*bloomColors.length)];
+    const bloom=new THREE.Mesh(
+      new THREE.SphereGeometry(r,10,8),
+      new THREE.MeshLambertMaterial({color:bc})
+    );
+    bloom.position.set((Math.random()-0.5)*1.2,trunkH+0.5+l*1.1,(Math.random()-0.5)*1.2);
+    bloom.castShadow=true;g.add(bloom);
+  }
+  g.position.set(x,y,z);scene.add(g);
 }
 
-// ========================================================
-// KAWAII CHARACTER 3D MODELS
-// ========================================================
-const charMeshes = []; // {mesh, data, caught}
+function makeGreenTree(x,z){
+  const y=getHeight(x,z);if(y<-0.5)return;
+  const g=new THREE.Group();
+  const trunkH=2+Math.random()*2;
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,trunkH,7),
+    new THREE.MeshLambertMaterial({color:0x5d4037}));
+  trunk.position.y=trunkH/2;trunk.castShadow=true;g.add(trunk);
+  const leafC=[0x66bb6a,0x81c784,0xa5d6a7,0x4caf50,0x388e3c];
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(1.8+Math.random(),trunkH*1.2,9),
+    new THREE.MeshLambertMaterial({color:leafC[Math.floor(Math.random()*leafC.length)]}));
+  cone.position.y=trunkH+0.6;cone.castShadow=true;g.add(cone);
+  g.position.set(x,y,z);scene.add(g);
+}
 
-function makeKawaiiChar(charData, x, z) {
-  const y = getHeight(x, z);
-  const g = new THREE.Group();
-  g.userData = { charData, caught: caught.has(charData.id) };
+// Torii gate
+function makeTorii(x,z){
+  const y=getHeight(x,z);if(y<0)return;
+  const mat=new THREE.MeshLambertMaterial({color:0xe53935});
+  const g=new THREE.Group();
+  // Posts
+  [[-1.2,0],[1.2,0]].forEach(([px,pz])=>{
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.15,4,8),mat);
+    post.position.set(px,2,pz);post.castShadow=true;g.add(post);
+  });
+  // Top beam
+  const top=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.25,0.25),mat);
+  top.position.y=4.1;g.add(top);
+  const top2=new THREE.Mesh(new THREE.BoxGeometry(2.8,0.2,0.2),mat);
+  top2.position.y=3.5;g.add(top2);
+  g.position.set(x,y,z);scene.add(g);
+}
 
-  const c = new THREE.Color(charData.color);
-  const mat = new THREE.MeshPhongMaterial({ color: c, shininess: 60 });
-  const darkMat = new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 20 });
-  const whiteMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 80 });
-  const pinkMat  = new THREE.MeshPhongMaterial({ color: 0xff69b4, shininess: 80 });
+// Anime lantern
+function makeLantern(x,z){
+  const y=getHeight(x,z);if(y<0)return;
+  const g=new THREE.Group();
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,3,6),
+    new THREE.MeshLambertMaterial({color:0x4e342e}));
+  pole.position.y=1.5;g.add(pole);
+  const lantern=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.6,0.4),
+    new THREE.MeshPhongMaterial({color:0xff3333,emissive:0xff1111,emissiveIntensity:0.4,transparent:true,opacity:0.9}));
+  lantern.position.y=3.2;g.add(lantern);
+  const glow=new THREE.PointLight(0xff6633,0.8,5);glow.position.y=3.2;g.add(glow);
+  g.position.set(x,y,z);scene.add(g);
+}
 
-  // Body
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), mat);
-  body.scale.y = 0.85;
-  body.position.y = 0.38;
-  body.castShadow = true;
-  g.add(body);
+// Spawn world objects
+for(let i=0;i<180;i++){
+  const a=Math.random()*Math.PI*2,d=10+Math.random()*WORLD_SIZE*0.48;
+  makeSakuraTree(Math.cos(a)*d,Math.sin(a)*d);
+}
+for(let i=0;i<120;i++){
+  const a=Math.random()*Math.PI*2,d=10+Math.random()*WORLD_SIZE*0.48;
+  makeGreenTree(Math.cos(a)*d,Math.sin(a)*d);
+}
+for(let i=0;i<8;i++){
+  const a=Math.random()*Math.PI*2,d=20+Math.random()*80;
+  makeTorii(Math.cos(a)*d,Math.sin(a)*d);
+}
+for(let i=0;i<30;i++){
+  const a=Math.random()*Math.PI*2,d=10+Math.random()*WORLD_SIZE*0.45;
+  makeLantern(Math.cos(a)*d,Math.sin(a)*d);
+}
 
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), mat);
-  head.position.y = 1.05;
-  head.castShadow = true;
-  g.add(head);
+// Flowers
+for(let i=0;i<800;i++){
+  const x=(Math.random()-0.5)*WORLD_SIZE*0.9,z=(Math.random()-0.5)*WORLD_SIZE*0.9;
+  const y=getHeight(x,z);if(y<0)continue;
+  const fc=[0xff69b4,0xff6b6b,0xffe066,0xb39ddb,0xffffff,0xff85c2];
+  const mat=new THREE.MeshLambertMaterial({color:fc[Math.floor(Math.random()*fc.length)]});
+  const g=new THREE.Group();
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.5,5),new THREE.MeshLambertMaterial({color:0x66bb6a}));
+  stem.position.y=0.25;g.add(stem);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.13,7,6),mat);
+  head.position.y=0.6;g.add(head);
+  g.position.set(x,y,z);scene.add(g);
+}
 
-  // Eyes
-  [-0.13,0.13].forEach(ex => {
-    const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8), whiteMat);
-    eyeWhite.position.set(ex, 1.1, 0.3);
-    g.add(eyeWhite);
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8), darkMat);
-    pupil.position.set(ex, 1.1, 0.36);
-    g.add(pupil);
-    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.02,6,6), whiteMat);
-    shine.position.set(ex+0.03, 1.13, 0.41);
-    g.add(shine);
+// ============================================================
+// ANIME KAWAII CHARACTER MODELS
+// ============================================================
+const charMeshes=[];
+
+function makeAnimeChar(data,x,z){
+  const y=getHeight(x,z);
+  const g=new THREE.Group();
+  const c=new THREE.Color(data.color);
+  const mat   =new THREE.MeshPhongMaterial({color:c,shininess:80});
+  const darkM =new THREE.MeshPhongMaterial({color:0x111122,shininess:20});
+  const whiteM=new THREE.MeshPhongMaterial({color:0xffffff,shininess:120});
+  const pinkM =new THREE.MeshPhongMaterial({color:0xff85c2,shininess:80});
+  const hairM =new THREE.MeshPhongMaterial({color:c.clone().offsetHSL(0.05,0.1,-0.1),shininess:100});
+
+  // Body — cuter, rounder
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.35,12,10),mat);
+  body.scale.set(1,1.05,1);body.position.y=0.42;body.castShadow=true;g.add(body);
+
+  // Skirt / outfit layer
+  const skirt=new THREE.Mesh(new THREE.ConeGeometry(0.42,0.45,10),
+    new THREE.MeshPhongMaterial({color:c.clone().offsetHSL(0,0.05,0.1),shininess:60}));
+  skirt.position.y=0.18;g.add(skirt);
+
+  // Neck
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.18,8),mat);
+  neck.position.y=0.8;g.add(neck);
+
+  // Head — large anime-style
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.42,14,12),mat);
+  head.scale.set(1,1.08,0.95);head.position.y=1.25;head.castShadow=true;g.add(head);
+
+  // Anime eyes — large, expressive
+  const eyePositions=[-0.17,0.17];
+  eyePositions.forEach(ex=>{
+    // Eye white
+    const ew=new THREE.Mesh(new THREE.EllipseCurve ? // fallback
+      new THREE.SphereGeometry(0.13,10,10) : new THREE.SphereGeometry(0.13,10,10),
+      whiteM);
+    ew.scale.set(1,1.25,0.4);ew.position.set(ex,1.3,0.38);g.add(ew);
+    // Iris — big and colorful
+    const irisC=new THREE.Color().setHSL(Math.random(),0.8,0.45);
+    const iris=new THREE.Mesh(new THREE.SphereGeometry(0.09,10,10),
+      new THREE.MeshPhongMaterial({color:irisC,shininess:150}));
+    iris.scale.set(1,1.2,0.5);iris.position.set(ex,1.3,0.42);g.add(iris);
+    // Pupil
+    const pupil=new THREE.Mesh(new THREE.SphereGeometry(0.055,8,8),darkM);
+    pupil.scale.set(1,1.1,0.5);pupil.position.set(ex,1.29,0.45);g.add(pupil);
+    // Anime shine dots
+    const sh1=new THREE.Mesh(new THREE.SphereGeometry(0.025,6,6),whiteM);
+    sh1.position.set(ex+0.05,1.36,0.48);g.add(sh1);
+    const sh2=new THREE.Mesh(new THREE.SphereGeometry(0.015,6,6),whiteM);
+    sh2.position.set(ex-0.04,1.26,0.47);g.add(sh2);
   });
 
-  // Blush
-  [-0.22,0.22].forEach(bx => {
-    const blush = new THREE.Mesh(new THREE.SphereGeometry(0.07,8,6), pinkMat);
-    blush.position.set(bx, 1.03, 0.34);
-    blush.scale.z = 0.3;
-    g.add(blush);
+  // Blush marks — soft ovals
+  [-0.28,0.28].forEach(bx=>{
+    const bl=new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6),
+      new THREE.MeshPhongMaterial({color:0xff85c2,transparent:true,opacity:0.5,shininess:0}));
+    bl.scale.set(1.3,0.6,0.25);bl.position.set(bx,1.22,0.4);g.add(bl);
   });
 
-  // Ears (bunny-like)
-  [-0.2,0.2].forEach(ex => {
-    const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.35,7), mat);
-    ear.position.set(ex, 1.42, 0);
-    ear.rotation.z = ex > 0 ? -0.2 : 0.2;
-    g.add(ear);
+  // Small cute nose
+  const nose=new THREE.Mesh(new THREE.SphereGeometry(0.022,6,6),pinkM);
+  nose.position.set(0,1.18,0.43);g.add(nose);
+
+  // Anime hair — layered style
+  // Front bangs
+  const bangGeo=new THREE.SphereGeometry(0.44,12,10);
+  const bangs=new THREE.Mesh(bangGeo,hairM);
+  bangs.scale.set(1,0.65,0.7);bangs.position.set(0,1.58,0.08);g.add(bangs);
+  // Side hair
+  [-0.32,0.32].forEach(hx=>{
+    const sideH=new THREE.Mesh(new THREE.CapsuleGeometry ?
+      new THREE.SphereGeometry(0.18,8,8) : new THREE.SphereGeometry(0.18,8,8),hairM);
+    sideH.scale.set(0.7,1.4,0.6);sideH.position.set(hx,1.1,0.05);g.add(sideH);
+  });
+  // Ahoge (signature anime hair strand)
+  const ahoge=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.04,0.4,6),hairM);
+  ahoge.position.set(0.06,1.78,0.05);ahoge.rotation.z=0.3;g.add(ahoge);
+  // Back hair
+  const backH=new THREE.Mesh(new THREE.SphereGeometry(0.44,10,8),hairM);
+  backH.scale.set(1,1.1,0.75);backH.position.set(0,1.2,-0.1);g.add(backH);
+
+  // Arms
+  [-0.42,0.42].forEach(ax=>{
+    const arm=new THREE.Mesh(new THREE.CapsuleGeometry ?
+      new THREE.CylinderGeometry(0.07,0.07,0.45,7) :
+      new THREE.CylinderGeometry(0.07,0.07,0.45,7),mat);
+    arm.position.set(ax,0.55,0);arm.rotation.z=ax>0?0.4:-0.4;arm.castShadow=true;g.add(arm);
+    // Tiny hand
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(0.08,7,7),mat);
+    hand.position.set(ax>0?ax+0.15:ax-0.15,0.35,0);g.add(hand);
   });
 
-  // Tiny accessory per rarity
-  if(charData.rarity === 'legendary') {
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.28,0.04,8,20),
-      new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:0.5}));
-    halo.position.y = 1.55;
-    halo.rotation.x = 0.3;
-    g.add(halo);
-  } else if(charData.rarity === 'rare') {
-    const crown = new THREE.Mesh(new THREE.ConeGeometry(0.15,0.25,5),
-      new THREE.MeshPhongMaterial({color:0xffd700}));
-    crown.position.y = 1.55;
-    g.add(crown);
+  // Feet / legs
+  [-0.14,0.14].forEach(lx=>{
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.35,7),mat);
+    leg.position.set(lx,0.05,0);g.add(leg);
+    const shoe=new THREE.Mesh(new THREE.SphereGeometry(0.1,7,6),
+      new THREE.MeshPhongMaterial({color:0xffffff}));
+    shoe.scale.set(1.1,0.7,1.4);shoe.position.set(lx,-0.1,0.05);g.add(shoe);
+  });
+
+  // Rarity accessories
+  if(data.rarity==='legendary'){
+    const halo=new THREE.Mesh(new THREE.TorusGeometry(0.32,0.04,8,24),
+      new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:0.8}));
+    halo.position.y=1.85;halo.rotation.x=0.25;g.add(halo);
+    const wings=[-0.55,0.55];
+    wings.forEach(wx=>{
+      const wing=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8),
+        new THREE.MeshPhongMaterial({color:0xffffff,transparent:true,opacity:0.7}));
+      wing.scale.set(0.5,1.2,0.2);wing.position.set(wx,0.7,-0.1);g.add(wing);
+    });
+  } else if(data.rarity==='rare'){
+    const crown=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.18,0.22,5),
+      new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xffa000,emissiveIntensity:0.4}));
+    crown.position.y=1.8;g.add(crown);
+  } else if(data.rarity==='uncommon'){
+    const bow=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),
+      new THREE.MeshPhongMaterial({color:0xff69b4}));
+    bow.scale.set(1.8,0.8,0.5);bow.position.set(0.3,1.68,0.1);g.add(bow);
   }
 
-  // Bounce animation offset
-  g.userData.bounceOffset = Math.random()*Math.PI*2;
-  g.userData.baseY = y + 0.05;
+  // Glow light
+  const glow=new THREE.PointLight(c,caught.has(data.id)?0:1.5,7);
+  glow.position.y=1;g.add(glow);
 
-  g.position.set(x, y + 0.05, z);
+  g.userData={charData:data,caught:caught.has(data.id),
+    bounceOffset:Math.random()*Math.PI*2,baseY:y+0.05,
+    glow,angle:Math.random()*Math.PI*2,speed:0,
+    wanderTimer:Math.random()*3,targetAngle:Math.random()*Math.PI*2,
+    fleeing:false,catchProgress:0};
+  g.position.set(x,y+0.05,z);
 
-  // Glow point light
-  const glow = new THREE.PointLight(c, caught.has(charData.id) ? 0 : 1.2, 6);
-  glow.position.set(0, 1, 0);
-  g.add(glow);
-  g.userData.glow = glow;
-
+  if(caught.has(data.id)){g.visible=false;}
   scene.add(g);
   charMeshes.push(g);
-
-  if(caught.has(charData.id)) setCharCaught(g);
 }
 
-function setCharCaught(g) {
-  g.userData.caught = true;
-  g.userData.glow.intensity = 0;
-  g.traverse(child => {
-    if(child.isMesh && child.material) {
-      child.material = child.material.clone();
-      child.material.transparent = true;
-      child.material.opacity = 0.0;
-    }
-  });
-  g.visible = false;
+// Spawn characters
+CHARS.forEach((ch,i)=>{
+  const angle=(i/100)*Math.PI*2+Math.random()*0.9;
+  let r;
+  if(ch.rarity==='common')    r=20+Math.random()*70;
+  if(ch.rarity==='uncommon')  r=50+Math.random()*90;
+  if(ch.rarity==='rare')      r=90+Math.random()*70;
+  if(ch.rarity==='legendary') r=140+Math.random()*45;
+  makeAnimeChar(ch,Math.cos(angle)*r,Math.sin(angle)*r);
+});
+
+// ============================================================
+// BUILD SYSTEM — Minecraft-scale 1x1x1 blocks
+// ============================================================
+const ghostMat=new THREE.MeshLambertMaterial({color:0xffb6c1,transparent:true,opacity:0.45,depthWrite:false});
+const ghost=new THREE.Mesh(new THREE.BoxGeometry(BSIZE,BSIZE,BSIZE),ghostMat);
+scene.add(ghost);ghost.visible=false;
+
+function bkey(x,y,z){return`${Math.round(x)},${Math.round(y)},${Math.round(z)}`;}
+
+function placeBlock(){
+  const hit=getBuildHit();if(!hit)return;
+  const p=hit.point.clone().addScaledVector(hit.face.normal,BSIZE*0.51);
+  const gx=Math.round(p.x/BSIZE)*BSIZE,gy=Math.round(p.y/BSIZE)*BSIZE,gz=Math.round(p.z/BSIZE)*BSIZE;
+  const k=bkey(gx,gy,gz);if(placedBlocks.has(k))return;
+  const m=new THREE.Mesh(new THREE.BoxGeometry(BSIZE,BSIZE,BSIZE),
+    new THREE.MeshLambertMaterial({color:new THREE.Color(selColor)}));
+  m.position.set(gx,gy,gz);m.castShadow=true;m.receiveShadow=true;
+  scene.add(m);placedBlocks.set(k,m);
 }
 
-// Spawn characters around the world
-KAWAII_CHARS.forEach((ch, i) => {
-  const angle = (i / 100) * Math.PI * 2 + Math.random() * 0.8;
-  let radius;
-  if(ch.rarity === 'common')    radius = 30  + Math.random() * 80;
-  if(ch.rarity === 'uncommon')  radius = 60  + Math.random() * 100;
-  if(ch.rarity === 'rare')      radius = 100 + Math.random() * 60;
-  if(ch.rarity === 'legendary') radius = 140 + Math.random() * 40;
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
-  makeKawaiiChar(ch, x, z);
-});
-
-// ========================================================
-// BUILDING SYSTEM
-// ========================================================
-const buildMat = new THREE.MeshLambertMaterial({ color: 0xffb6c1, transparent: true, opacity: 0.6 });
-const ghostBlock = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), buildMat);
-scene.add(ghostBlock);
-ghostBlock.visible = false;
-
-const BLOCK_SIZE = 2;
-function blockKey(x,y,z) { return `${x},${y},${z}`; }
-
-function placeBlock(pos) {
-  const gx = Math.round(pos.x/BLOCK_SIZE)*BLOCK_SIZE;
-  const gy = Math.round(pos.y/BLOCK_SIZE)*BLOCK_SIZE;
-  const gz = Math.round(pos.z/BLOCK_SIZE)*BLOCK_SIZE;
-  const key = blockKey(gx,gy,gz);
-  if(placedBlocks.has(key)) return;
-  const mat = new THREE.MeshLambertMaterial({ color: new THREE.Color(selectedBlockColor) });
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE), mat);
-  mesh.position.set(gx,gy,gz);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-  placedBlocks.set(key, mesh);
+function removeBlock(){
+  const hit=getBuildHit();if(!hit)return;
+  const p=hit.point.clone().addScaledVector(hit.face.normal,-BSIZE*0.1);
+  const k=bkey(Math.round(p.x/BSIZE)*BSIZE,Math.round(p.y/BSIZE)*BSIZE,Math.round(p.z/BSIZE)*BSIZE);
+  if(!placedBlocks.has(k))return;
+  scene.remove(placedBlocks.get(k));placedBlocks.delete(k);
 }
 
-function removeBlock(pos) {
-  const gx = Math.round(pos.x/BLOCK_SIZE)*BLOCK_SIZE;
-  const gy = Math.round(pos.y/BLOCK_SIZE)*BLOCK_SIZE;
-  const gz = Math.round(pos.z/BLOCK_SIZE)*BLOCK_SIZE;
-  const key = blockKey(gx,gy,gz);
-  if(!placedBlocks.has(key)) return;
-  scene.remove(placedBlocks.get(key));
-  placedBlocks.delete(key);
+const ray=new THREE.Raycaster();
+const center=new THREE.Vector2(0,0);
+function getBuildHit(){
+  ray.setFromCamera(center,camera);
+  const targets=[terrMesh,...placedBlocks.values()];
+  const hits=ray.intersectObjects(targets,false);
+  if(!hits.length||hits[0].distance>6)return null;
+  return hits[0];
 }
 
-// Block palette
-const palette = document.getElementById('block-palette');
-BLOCK_COLORS.forEach((col, i) => {
-  const btn = document.createElement('div');
-  btn.className = 'palette-block' + (i===0?' selected':'');
-  btn.style.background = col;
-  btn.onclick = () => {
-    selectedBlockColor = col;
-    document.querySelectorAll('.palette-block').forEach(b=>b.classList.remove('selected'));
-    btn.classList.add('selected');
-    buildMat.color.set(col);
-  };
-  palette.appendChild(btn);
+// Palette UI
+const palRow=document.getElementById('palette-row');
+BLOCK_COLORS.forEach((col,i)=>{
+  const d=document.createElement('div');
+  d.className='pal-block'+(i===0?' sel':'');
+  d.style.background=col;
+  d.innerHTML=`<span class="pal-key">${i+1}</span>`;
+  palRow.appendChild(d);
 });
 
-// ========================================================
-// RAYCASTER for building
-// ========================================================
-const raycaster = new THREE.Raycaster();
-const center2D = new THREE.Vector2(0, 0);
-
-function getBuildTarget() {
-  raycaster.setFromCamera(center2D, camera);
-  const targets = [terrain, ...placedBlocks.values()];
-  const hits = raycaster.intersectObjects(targets, false);
-  if(!hits.length) return null;
-  const hit = hits[0];
-  if(hit.distance > 8) return null;
-  return hit;
+function selectColor(i){
+  selColor=BLOCK_COLORS[i];
+  ghostMat.color.set(selColor);
+  document.querySelectorAll('.pal-block').forEach((b,j)=>b.classList.toggle('sel',j===i));
 }
 
-// ========================================================
-// PLAYER CONTROLLER
-// ========================================================
-const keys = {};
-let yaw = 0, pitch = 0;
+// ============================================================
+// CHARACTER AI — wandering + fleeing
+// ============================================================
+function updateCharAI(g,dt,t){
+  if(g.userData.caught)return;
+  const ud=g.userData;
+  const dx=camera.position.x-g.position.x;
+  const dz=camera.position.z-g.position.z;
+  const dist=Math.sqrt(dx*dx+dz*dz);
 
-document.addEventListener('keydown', e => {
-  keys[e.code] = true;
-  if(e.code === 'KeyB' && locked) {
-    buildMode = !buildMode;
-    document.getElementById('mode-text').textContent = buildMode ? 'Build' : 'Explore';
-    document.getElementById('mode-label').style.display = buildMode ? 'block' : 'none';
-    document.getElementById('block-palette').className = buildMode ? 'visible' : '';
-    ghostBlock.visible = buildMode;
-  }
-  if(e.code === 'KeyE' && locked && nearbyChar && !dialogueChar) {
-    openDialogue(nearbyChar);
-  }
-  if(e.code === 'Escape') {
-    closeDialogue();
-    const modal = document.getElementById('collection-modal');
-    if(modal.classList.contains('open')) modal.classList.remove('open');
-  }
-});
-document.addEventListener('keyup', e => { keys[e.code] = false; });
+  const fleeRadius=ud.charData.rarity==='legendary'?14:ud.charData.rarity==='rare'?12:ud.charData.rarity==='uncommon'?10:8;
+  const fleeSpeed=ud.charData.rarity==='legendary'?9:ud.charData.rarity==='rare'?7:ud.charData.rarity==='uncommon'?5.5:4;
 
-document.addEventListener('mousemove', e => {
-  if(!locked) return;
-  yaw   -= e.movementX * 0.002;
-  pitch -= e.movementY * 0.002;
-  pitch  = Math.max(-1.3, Math.min(1.3, pitch));
-});
-
-document.addEventListener('mousedown', e => {
-  if(!locked || !buildMode) return;
-  const hit = getBuildTarget();
-  if(!hit) return;
-  if(e.button === 0) {
-    // Place on hit face normal offset
-    const p = hit.point.clone().addScaledVector(hit.face.normal, BLOCK_SIZE*0.6);
-    placeBlock(p);
-  } else if(e.button === 2) {
-    removeBlock(hit.point);
-  }
-});
-document.addEventListener('contextmenu', e => e.preventDefault());
-
-document.addEventListener('pointerlockchange', () => {
-  locked = !!document.pointerLockElement;
-  document.getElementById('blocker').style.display = locked ? 'none' : 'flex';
-});
-
-document.getElementById('startBtn').addEventListener('click', () => {
-  renderer.domElement.requestPointerLock();
-});
-
-// ========================================================
-// CAMERA SPAWN
-// ========================================================
-const spawnX = 0, spawnZ = 0;
-const spawnY = getHeight(spawnX, spawnZ) + PLAYER_HEIGHT;
-camera.position.set(spawnX, spawnY, spawnZ);
-
-// ========================================================
-// COMPASS & HOT/COLD
-// ========================================================
-function updateCompass() {
-  // Find nearest uncaught character
-  let minDist = Infinity, nearest = null;
-  for(const g of charMeshes) {
-    if(g.userData.caught) continue;
-    const dx = g.position.x - camera.position.x;
-    const dz = g.position.z - camera.position.z;
-    const dist = Math.sqrt(dx*dx+dz*dz);
-    if(dist < minDist) { minDist = dist; nearest = g; }
-  }
-
-  if(!nearest) {
-    document.getElementById('compass-label').textContent = '✨ All caught!';
-    return;
-  }
-
-  // Needle angle (relative to camera yaw)
-  const dx = nearest.position.x - camera.position.x;
-  const dz = nearest.position.z - camera.position.z;
-  const worldAngle = Math.atan2(dx, dz);
-  const relAngle = worldAngle - yaw;
-  document.getElementById('compass-needle').style.transform = `rotate(${relAngle}rad)`;
-
-  // Hot/cold
-  const maxDist = 200;
-  const t = Math.max(0, Math.min(1, minDist / maxDist));
-  const pct = (1 - t) * 100;
-  document.getElementById('temp-indicator').style.left = `calc(${pct}% - 3px)`;
-
-  const name = nearest.userData.charData.name;
-  const distStr = minDist < 10 ? 'RIGHT THERE!' : minDist < 30 ? 'Very close~' : minDist < 70 ? 'Getting warm!' : minDist < 120 ? 'Keep going~' : 'Far away...';
-  document.getElementById('compass-label').textContent = `${name}: ${distStr}`;
-}
-
-// ========================================================
-// INTERACTION
-// ========================================================
-function checkNearbyChars() {
-  let closest = null, minDist = 4.5;
-  for(const g of charMeshes) {
-    if(g.userData.caught) continue;
-    const dx = g.position.x - camera.position.x;
-    const dz = g.position.z - camera.position.z;
-    const dist = Math.sqrt(dx*dx+dz*dz);
-    if(dist < minDist) { minDist = dist; closest = g; }
-  }
-  nearbyChar = closest;
-  const prompt = document.getElementById('interact-prompt');
-  if(closest && !dialogueChar) {
-    prompt.style.display = 'block';
-    prompt.innerHTML = `Press <b>E</b> to meet <b>${closest.userData.charData.emoji} ${closest.userData.charData.name}</b>!`;
+  if(dist<fleeRadius&&!dialogueChar){
+    // FLEE — run away from player
+    ud.fleeing=true;
+    const awayAngle=Math.atan2(-dx,-dz);
+    // Add slight random jitter so they don't run in perfectly straight lines
+    ud.targetAngle=awayAngle+(Math.random()-0.5)*0.4;
+    ud.speed=fleeSpeed;
   } else {
-    prompt.style.display = 'none';
+    ud.fleeing=false;
+    ud.wanderTimer-=dt;
+    if(ud.wanderTimer<=0){
+      ud.wanderTimer=2+Math.random()*4;
+      ud.targetAngle=Math.random()*Math.PI*2;
+      ud.speed=0.8+Math.random()*1.8;
+    }
+    // Pause occasionally
+    if(Math.random()<0.002)ud.speed=0;
+  }
+
+  // Smooth angle
+  let da=ud.targetAngle-ud.angle;
+  while(da>Math.PI)da-=Math.PI*2;
+  while(da<-Math.PI)da+=Math.PI*2;
+  ud.angle+=da*Math.min(dt*4,1);
+
+  // Move
+  const nx=g.position.x+Math.sin(ud.angle)*ud.speed*dt;
+  const nz=g.position.z+Math.cos(ud.angle)*ud.speed*dt;
+  const half=WORLD_SIZE/2-8;
+  if(Math.abs(nx)<half&&Math.abs(nz)<half){
+    g.position.x=nx;g.position.z=nz;
+  } else {
+    ud.targetAngle+=Math.PI; // bounce back
+  }
+
+  g.position.y=getHeight(g.position.x,g.position.z)+ud.bounceOffset*0+
+    Math.abs(Math.sin(t*2.5+ud.bounceOffset))*0.15+0.05;
+  g.rotation.y=ud.angle+Math.PI;
+
+  // Bounce scale when fleeing
+  const scalePulse=ud.fleeing?1+Math.sin(t*8)*0.05:1+Math.sin(t*1.5+ud.bounceOffset)*0.03;
+  g.scale.setScalar(scalePulse);
+}
+
+// ============================================================
+// CONTROLS
+// ============================================================
+document.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+
+  if(e.code==='KeyB'&&locked){
+    buildMode=!buildMode;
+    document.getElementById('mode-text').textContent=buildMode?'Build':'Explore';
+    document.getElementById('mode-badge').style.display=buildMode?'block':'none';
+    document.getElementById('palette-wrap').className=buildMode?'visible':'';
+    ghost.visible=buildMode;
+  }
+  if(e.code==='KeyF'&&locked&&buildMode)placeBlock();
+  if(e.code==='KeyR'&&locked&&buildMode)removeBlock();
+
+  if(e.code==='KeyE'&&locked){
+    if(dialogueChar){catchCharacter();}
+    else if(nearbyChar){openDialogue(nearbyChar);}
+  }
+  if(e.code==='KeyV'&&locked&&dialogueChar)askClue();
+  if(e.code==='KeyQ'||e.code==='Escape'){
+    if(document.getElementById('fact-modal').classList.contains('open'))closeFact();
+    else if(dialogueChar)closeDialogue();
+    else if(document.getElementById('coll-modal').classList.contains('open'))toggleCollection();
+  }
+  if(e.code==='Tab'){e.preventDefault();toggleCollection();}
+
+  // Block color 1-8
+  const num=parseInt(e.key);
+  if(num>=1&&num<=8)selectColor(num-1);
+});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
+document.addEventListener('mousemove',e=>{
+  if(!locked)return;
+  yaw-=e.movementX*0.002;
+  pitch=Math.max(-1.3,Math.min(1.3,pitch-e.movementY*0.002));
+});
+
+document.addEventListener('pointerlockchange',()=>{
+  locked=!!document.pointerLockElement;
+  document.getElementById('blocker').style.display=locked?'none':'flex';
+});
+document.getElementById('startBtn').addEventListener('click',()=>renderer.domElement.requestPointerLock());
+
+// ============================================================
+// PLAYER PHYSICS
+// ============================================================
+camera.position.set(0,getHeight(0,0)+PHEIGHT,0);
+
+function updatePlayer(dt){
+  const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+  const move=new THREE.Vector3();
+  if(keys['KeyW'])move.addScaledVector(fwd,1);
+  if(keys['KeyS'])move.addScaledVector(fwd,-1);
+  if(keys['KeyA'])move.addScaledVector(right,-1);
+  if(keys['KeyD'])move.addScaledVector(right,1);
+  if(move.lengthSq()>0)move.normalize();
+
+  const speed=keys['ShiftLeft']?PSPEED*2:PSPEED;
+  playerVel.x=move.x*speed;
+  playerVel.z=move.z*speed;
+  playerVel.y-=GRAVITY*dt;
+
+  camera.position.x+=playerVel.x*dt;
+  camera.position.z+=playerVel.z*dt;
+  camera.position.y+=playerVel.y*dt;
+
+  const terrY=getHeight(camera.position.x,camera.position.z);
+  let floor=Math.max(terrY,-1.5)+PHEIGHT;
+
+  // Block collision
+  for(const [,m] of placedBlocks){
+    const bx=m.position.x,by=m.position.y,bz=m.position.z;
+    if(Math.abs(camera.position.x-bx)<BSIZE*0.55&&Math.abs(camera.position.z-bz)<BSIZE*0.55){
+      const top=by+BSIZE/2;
+      if(top>floor&&camera.position.y-PHEIGHT<top+0.3)floor=Math.max(floor,top+PHEIGHT);
+    }
+  }
+
+  if(camera.position.y<floor){camera.position.y=floor;playerVel.y=0;onGround=true;}
+  else onGround=false;
+
+  if(keys['Space']&&onGround){playerVel.y=8;}
+
+  const half=WORLD_SIZE/2-3;
+  camera.position.x=Math.max(-half,Math.min(half,camera.position.x));
+  camera.position.z=Math.max(-half,Math.min(half,camera.position.z));
+
+  camera.rotation.order='YXZ';
+  camera.rotation.y=yaw;
+  camera.rotation.x=pitch;
+}
+
+// ============================================================
+// INTERACTION
+// ============================================================
+function checkNearby(){
+  let best=null,bestDist=3.5;
+  for(const g of charMeshes){
+    if(g.userData.caught)continue;
+    const dx=g.position.x-camera.position.x,dz=g.position.z-camera.position.z;
+    const d=Math.sqrt(dx*dx+dz*dz);
+    if(d<bestDist){bestDist=d;best=g;}
+  }
+  nearbyChar=best;
+  const p=document.getElementById('interact-prompt');
+  const fb=document.getElementById('flee-bar-wrap');
+  if(best&&!dialogueChar){
+    p.style.display='block';
+    const ch=best.userData.charData;
+    const fleeing=best.userData.fleeing;
+    p.innerHTML=fleeing
+      ?`Chasing <b>${ch.emoji} ${ch.name}</b>! Get closer — <b>[E]</b> to catch!`
+      :`<b>${ch.emoji} ${ch.name}</b> is here! <b>[E]</b> to interact`;
+    // Proximity bar
+    fb.style.display='block';
+    const pct=Math.max(0,Math.min(100,(1-bestDist/3.5)*100));
+    document.getElementById('flee-bar-fill').style.width=pct+'%';
+  } else {
+    p.style.display='none';
+    fb.style.display='none';
   }
 }
 
-function openDialogue(g) {
-  dialogueChar = g;
-  const ch = g.userData.charData;
-  document.getElementById('dialogue-char-name').textContent = `${ch.emoji} ${ch.name} says:`;
-  document.getElementById('dialogue-text').textContent = ch.intro;
-  document.getElementById('dlg-catch').style.display = 'inline-flex';
-  document.getElementById('dlg-clue').style.display = 'inline-flex';
-  document.getElementById('dialogue-modal').classList.add('open');
-  document.getElementById('interact-prompt').style.display = 'none';
+function openDialogue(g){
+  dialogueChar=g;
+  const ch=g.userData.charData;
+  g.userData.speed=0; // stop moving during dialogue
+  document.getElementById('dlg-name').textContent=`${ch.emoji} ${ch.name}`;
+  document.getElementById('dlg-text').textContent=ch.intro;
+  document.getElementById('dlg-keys').innerHTML=
+    '<span>[E]</span> Catch &nbsp; <span>[V]</span> Get a clue &nbsp; <span>[Q]</span> Bye~';
+  document.getElementById('dlg-modal').classList.add('open');
+  document.getElementById('interact-prompt').style.display='none';
+  document.getElementById('flee-bar-wrap').style.display='none';
 }
 
-function closeDialogue() {
-  dialogueChar = null;
-  document.getElementById('dialogue-modal').classList.remove('open');
+function closeDialogue(){
+  if(dialogueChar)dialogueChar.userData.speed=0;
+  dialogueChar=null;
+  document.getElementById('dlg-modal').classList.remove('open');
 }
 
-function catchCharacter() {
-  if(!dialogueChar) return;
-  const ch = dialogueChar.userData.charData;
+function catchCharacter(){
+  if(!dialogueChar)return;
+  const ch=dialogueChar.userData.charData;
   caught.add(ch.id);
-  localStorage.setItem('kawaii_caught', JSON.stringify([...caught]));
-  setCharCaught(dialogueChar);
-  dialogueChar = null;
-  document.getElementById('dialogue-modal').classList.remove('open');
-  document.getElementById('caught-num').textContent = caught.size;
+  localStorage.setItem('kw_caught',JSON.stringify([...caught]));
+  const g=dialogueChar;
+  dialogueChar=null;
+  document.getElementById('dlg-modal').classList.remove('open');
 
   // Flash
-  const flash = document.getElementById('catch-flash');
-  document.getElementById('catch-flash-text').innerHTML = `🌸 ${ch.emoji} ${ch.name} caught! 🌸`;
+  const flash=document.getElementById('catch-flash');
+  document.getElementById('catch-flash-text').innerHTML=
+    `🌸 ${ch.emoji} Caught ${ch.name}! 🌸`;
   flash.classList.add('show');
-  setTimeout(() => flash.classList.remove('show'), 800);
+  setTimeout(()=>{flash.classList.remove('show');showFact(ch);},800);
 
-  updateCollectionGrid();
+  g.userData.caught=true;
+  g.userData.glow.intensity=0;
+  setTimeout(()=>{g.visible=false;},600);
+
+  document.getElementById('caught-num').textContent=caught.size;
+  updateCollGrid();
 }
 
-function askClue() {
-  if(!dialogueChar) return;
-  const ch = dialogueChar.userData.charData;
-  document.getElementById('dialogue-text').textContent = '🔍 Clue: ' + ch.clue;
-  document.getElementById('dlg-catch').style.display = 'none';
-  document.getElementById('dlg-clue').style.display = 'none';
+function showFact(ch){
+  document.getElementById('fact-emoji').textContent=ch.emoji;
+  document.getElementById('fact-name').textContent=ch.name;
+  document.getElementById('fact-power').innerHTML=`⚡ Power: <b>${ch.power}</b>`;
+  document.getElementById('fact-text').textContent='📚 Fun Fact: '+ch.fact;
+  document.getElementById('fact-modal').classList.add('open');
+}
+function closeFact(){document.getElementById('fact-modal').classList.remove('open');}
+window.closeFact=closeFact;
+
+function askClue(){
+  if(!dialogueChar)return;
+  const ch=dialogueChar.userData.charData;
+  document.getElementById('dlg-text').textContent='🔍 '+ch.clue;
+  document.getElementById('dlg-keys').innerHTML='<span>[E]</span> Catch &nbsp; <span>[Q]</span> Bye~';
 }
 
-// ========================================================
-// COLLECTION GRID
-// ========================================================
-function updateCollectionGrid() {
-  const grid = document.getElementById('collection-grid');
-  grid.innerHTML = '';
-  KAWAII_CHARS.forEach(ch => {
-    const isCaught = caught.has(ch.id);
-    const card = document.createElement('div');
-    card.className = 'char-card' + (isCaught ? ' caught' : '');
-    card.innerHTML = `
-      <div class="char-icon" style="background:${isCaught?ch.color+'33':'#222'}">${ch.emoji}</div>
-      <div class="char-name">${isCaught ? ch.name : '???'}</div>
+// ============================================================
+// COLLECTION
+// ============================================================
+function updateCollGrid(){
+  const grid=document.getElementById('coll-grid');grid.innerHTML='';
+  CHARS.forEach(ch=>{
+    const c=caught.has(ch.id);
+    const card=document.createElement('div');
+    card.className='char-card'+(c?' caught':'');
+    card.innerHTML=`
+      <div class="char-icon">${ch.emoji}</div>
+      <div class="char-name">${c?ch.name:'???'}</div>
       <div class="char-rarity rarity-${ch.rarity}">${ch.rarity}</div>
     `;
+    if(c)card.title=ch.power;
     grid.appendChild(card);
   });
 }
-updateCollectionGrid();
-document.getElementById('caught-num').textContent = caught.size;
-
-function toggleCollection() {
-  const modal = document.getElementById('collection-modal');
-  modal.classList.toggle('open');
+updateCollGrid();
+document.getElementById('caught-num').textContent=caught.size;
+function toggleCollection(){
+  document.getElementById('coll-modal').classList.toggle('open');
 }
+window.toggleCollection=toggleCollection;
 
-// ========================================================
-// PHYSICS / MOVEMENT
-// ========================================================
-const clock = new THREE.Clock();
-
-function updatePlayer(dt) {
-  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
-  const right   = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-
-  const moveDir = new THREE.Vector3();
-  if(keys['KeyW']) moveDir.addScaledVector(forward, 1);
-  if(keys['KeyS']) moveDir.addScaledVector(forward, -1);
-  if(keys['KeyA']) moveDir.addScaledVector(right, -1);
-  if(keys['KeyD']) moveDir.addScaledVector(right, 1);
-  if(moveDir.lengthSq() > 0) moveDir.normalize();
-
-  // Sprint
-  const speed = keys['ShiftLeft'] ? PLAYER_SPEED * 2 : PLAYER_SPEED;
-  playerVel.x = moveDir.x * speed;
-  playerVel.z = moveDir.z * speed;
-
-  // Gravity
-  playerVel.y -= GRAVITY * dt;
-
-  camera.position.x += playerVel.x * dt;
-  camera.position.z += playerVel.z * dt;
-  camera.position.y += playerVel.y * dt;
-
-  // Terrain collision
-  const terrainY = getTerrainHeightAt(camera.position.x, camera.position.z);
-  const floorY = Math.max(terrainY, -1.5) + PLAYER_HEIGHT;
-
-  // Block collision (simple AABB top check)
-  let blockFloor = -Infinity;
-  for(const [, mesh] of placedBlocks) {
-    const bx = mesh.position.x, by = mesh.position.y, bz = mesh.position.z;
-    if(Math.abs(camera.position.x - bx) < BLOCK_SIZE*0.6 &&
-       Math.abs(camera.position.z - bz) < BLOCK_SIZE*0.6) {
-      const top = by + BLOCK_SIZE/2;
-      if(top > blockFloor && camera.position.y - PLAYER_HEIGHT < top + 0.2) {
-        blockFloor = top;
-      }
-    }
+// ============================================================
+// COMPASS
+// ============================================================
+function updateCompass(){
+  let minDist=Infinity,nearest=null;
+  for(const g of charMeshes){
+    if(g.userData.caught)continue;
+    const dx=g.position.x-camera.position.x,dz=g.position.z-camera.position.z;
+    const d=Math.sqrt(dx*dx+dz*dz);
+    if(d<minDist){minDist=d;nearest=g;}
   }
-
-  const effectiveFloor = Math.max(floorY, blockFloor === -Infinity ? -Infinity : blockFloor + PLAYER_HEIGHT);
-
-  if(camera.position.y < effectiveFloor) {
-    camera.position.y = effectiveFloor;
-    playerVel.y = 0;
-    onGround = true;
-  } else {
-    onGround = false;
-  }
-
-  // Jump
-  if(keys['Space'] && onGround) {
-    playerVel.y = 8;
-  }
-
-  // World boundary
-  const half = WORLD_SIZE/2 - 5;
-  camera.position.x = Math.max(-half, Math.min(half, camera.position.x));
-  camera.position.z = Math.max(-half, Math.min(half, camera.position.z));
-
-  // Apply yaw/pitch
-  camera.rotation.order = 'YXZ';
-  camera.rotation.y = yaw;
-  camera.rotation.x = pitch;
+  if(!nearest){document.getElementById('compass-label').textContent='✨ All caught!';return;}
+  const dx=nearest.position.x-camera.position.x,dz=nearest.position.z-camera.position.z;
+  const rel=Math.atan2(dx,dz)-yaw;
+  document.getElementById('compass-needle').style.transform=`rotate(${rel}rad)`;
+  const t=Math.max(0,Math.min(1,minDist/220));
+  document.getElementById('temp-indicator').style.left=`calc(${(1-t)*100}% - 3px)`;
+  const nm=nearest.userData.charData.name;
+  const label=minDist<5?'RIGHT THERE~!':minDist<15?'SO close!':minDist<40?'🔥 Getting hot!':minDist<80?'Warm~ keep going':minDist<130?'Cool...':' Cold...';
+  document.getElementById('compass-label').textContent=`${nm}: ${label}`;
 }
 
-// Heightmap from terrain vertices - efficient lookup
-function getTerrainHeightAt(x, z) {
-  // Direct noise lookup
-  return getHeight(x, z);
+// ============================================================
+// GHOST BLOCK
+// ============================================================
+function updateGhost(){
+  if(!buildMode){ghost.visible=false;return;}
+  const hit=getBuildHit();
+  if(!hit){ghost.visible=false;return;}
+  ghost.visible=true;
+  const p=hit.point.clone().addScaledVector(hit.face.normal,BSIZE*0.51);
+  ghost.position.set(Math.round(p.x/BSIZE)*BSIZE,Math.round(p.y/BSIZE)*BSIZE,Math.round(p.z/BSIZE)*BSIZE);
 }
 
-// ========================================================
-// GHOST BLOCK UPDATE
-// ========================================================
-function updateGhostBlock() {
-  if(!buildMode) { ghostBlock.visible = false; return; }
-  const hit = getBuildTarget();
-  if(!hit) { ghostBlock.visible = false; return; }
-  ghostBlock.visible = true;
-  const p = hit.point.clone().addScaledVector(hit.face.normal, BLOCK_SIZE*0.6);
-  ghostBlock.position.set(
-    Math.round(p.x/BLOCK_SIZE)*BLOCK_SIZE,
-    Math.round(p.y/BLOCK_SIZE)*BLOCK_SIZE,
-    Math.round(p.z/BLOCK_SIZE)*BLOCK_SIZE
-  );
-}
-
-// ========================================================
-// CHARACTER ANIMATIONS
-// ========================================================
-function animateChars(t) {
-  for(const g of charMeshes) {
-    if(g.userData.caught) continue;
-    const bounce = Math.sin(t * 2 + g.userData.bounceOffset) * 0.12;
-    g.position.y = g.userData.baseY + bounce;
-    g.rotation.y = t * 0.8 + g.userData.bounceOffset;
-  }
-}
-
-// Water shimmer
-let waterTime = 0;
-function animateWater(dt) {
-  waterTime += dt;
-  waterMat.color.setHSL(0.58, 0.6, 0.5 + Math.sin(waterTime*0.5)*0.04);
-}
-
-// ========================================================
+// ============================================================
 // GAME LOOP
-// ========================================================
-let compassTimer = 0;
-let nearbyTimer  = 0;
-
-function animate() {
+// ============================================================
+const clock=new THREE.Clock();
+function animate(){
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
-  const t  = clock.getElapsedTime();
+  const dt=Math.min(clock.getDelta(),0.05);
+  const t=clock.getElapsedTime();
 
-  if(locked) {
-    updatePlayer(dt);
-    updateGhostBlock();
-  }
+  if(locked){updatePlayer(dt);}
+  charMeshes.forEach(g=>updateCharAI(g,dt,t));
 
-  animateChars(t);
-  animateWater(dt);
+  waterMat.color.setHSL(0.58,0.55,0.5+Math.sin(t*0.4)*0.03);
 
-  compassTimer -= dt;
-  if(compassTimer <= 0) { compassTimer = 0.25; updateCompass(); }
+  updateGhost();
 
-  nearbyTimer -= dt;
-  if(nearbyTimer <= 0) { nearbyTimer = 0.15; checkNearbyChars(); }
+  compassTimer-=dt;if(compassTimer<=0){compassTimer=0.2;updateCompass();}
+  nearbyTimer-=dt;if(nearbyTimer<=0){nearbyTimer=0.1;checkNearby();}
 
-  renderer.render(scene, camera);
+  renderer.render(scene,camera);
 }
-
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth/innerHeight;
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(innerWidth,innerHeight);
 });
-
 animate();
 </script>
 </body>

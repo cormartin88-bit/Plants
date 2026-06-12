@@ -262,7 +262,8 @@ canvas { display:block; }
     <div><b>Tab</b> — Collection</div>
   </div>
   <p style="color:#ce93d8;font-size:0.88rem;">Characters FLEE when you get close — chase them down!</p>
-  <button id="startBtn">Enter the World ✨</button>
+  <button id="startBtn">▶ Click Here to Enter the World ✨</button>
+  <p style="color:#9b7aaa;font-size:0.78rem;margin-top:0.7rem;">If mouse doesn't lock, click &amp; drag to look around</p>
 </div>
 
 <div id="hud">
@@ -332,6 +333,13 @@ canvas { display:block; }
     <div id="fact-text"></div>
     <button id="fact-close" onclick="closeFact()">Wonderful! [Q]</button>
   </div>
+</div>
+
+<!-- No pointer lock tip -->
+<div id="no-lock-tip" style="display:none;position:fixed;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(15,0,30,0.9);border:2px solid #ff69b4;border-radius:14px;
+  padding:0.4rem 1rem;color:#ffb6c1;font-size:0.8rem;z-index:20;pointer-events:none;">
+  🖱 Click &amp; drag to look around
 </div>
 
 <!-- Catch flash -->
@@ -1370,9 +1378,39 @@ document.addEventListener('mousemove',e=>{
 
 document.addEventListener('pointerlockchange',()=>{
   locked=!!document.pointerLockElement;
-  document.getElementById('blocker').style.display=locked?'none':'flex';
+  if(locked) document.getElementById('blocker').style.display='none';
 });
-document.getElementById('startBtn').addEventListener('click',()=>renderer.domElement.requestPointerLock());
+document.addEventListener('pointerlockerror',()=>{
+  // Pointer lock failed — run in no-lock fallback mode
+  enterFallback();
+});
+
+function tryEnter(){
+  try { renderer.domElement.requestPointerLock(); }
+  catch(e){ enterFallback(); }
+}
+
+function enterFallback(){
+  // Fallback: game runs without pointer lock; use click-drag to look
+  locked=true;
+  document.getElementById('blocker').style.display='none';
+  document.getElementById('no-lock-tip').style.display='block';
+  // Click-drag to look
+  let dragging=false,lastX=0,lastY=0;
+  renderer.domElement.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;});
+  document.addEventListener('mouseup',()=>dragging=false);
+  document.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    yaw  -=(e.clientX-lastX)*0.003;
+    pitch =Math.max(-1.3,Math.min(1.3,pitch-(e.clientY-lastY)*0.003));
+    lastX=e.clientX;lastY=e.clientY;
+  });
+}
+
+document.getElementById('startBtn').addEventListener('click', tryEnter);
+document.getElementById('blocker').addEventListener('click', e=>{
+  if(e.target===document.getElementById('startBtn'))return; // handled above
+});
 
 // ============================================================
 // PLAYER PHYSICS

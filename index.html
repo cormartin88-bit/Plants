@@ -9,29 +9,7 @@
 body { overflow:hidden; background:#000; font-family:'Segoe UI',sans-serif; }
 canvas { display:block; }
 
-#blocker {
-  position:fixed; inset:0;
-  background:rgba(0,0,0,0.82);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  z-index:100; color:#fff; text-align:center; padding:2rem;
-}
-#blocker h1 { font-size:2.8rem; color:#ffb6c1; text-shadow:0 0 20px #ff69b4; margin-bottom:1rem; }
-#blocker .controls {
-  background:rgba(255,105,180,0.1); border:1px solid #ff69b4;
-  border-radius:16px; padding:1.2rem 2rem; margin:1rem 0;
-  color:#ffd6e8; font-size:0.92rem; line-height:2;
-  text-align:left; display:grid; grid-template-columns:1fr 1fr; gap:0 2rem;
-}
-#blocker .controls b { color:#ff69b4; }
-#startBtn {
-  margin-top:1.5rem; padding:0.9rem 2.5rem;
-  background:linear-gradient(135deg,#ff69b4,#da70d6);
-  border:none; border-radius:50px; color:#fff;
-  font-size:1.2rem; cursor:pointer; box-shadow:0 0 30px #ff69b4;
-  transition:transform 0.15s;
-}
-#startBtn:hover { transform:scale(1.05); }
+/* v3 - no start screen */
 
 /* HUD */
 #hud { position:fixed; inset:0; pointer-events:none; z-index:10; }
